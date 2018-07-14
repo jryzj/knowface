@@ -1,0 +1,15 @@
+{
+  "name": "knowface",
+  "version": "1.0.0",
+  "description": "to study face identify",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jryzj",
+  "license": "MIT",
+  "dependencies": {
+    "baidu-aip-sdk": "^2.3.3",
+    "express": "^4.16.3"
+  }
+}

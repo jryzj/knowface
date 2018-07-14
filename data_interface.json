@@ -1,0 +1,49 @@
+//本文档是非标准Json文档，只是借用json结构来说明接口
+//全动态意味着seo就会差，需要有个度
+//对于可呈现的内容，所谓的前后端分离，是要在有个协调机制的框架下，也就说在前端后端都分别开发完成，且数据的流动没有任何问题的情况下，
+//需要在上层有个机制根据产品体验对前台布局来调整。比如说顶层菜单，前端可以做出整体效果，但前端不知道后端推来的动态菜单的具体信息，
+//所以也无法针对性的给出精细的风格。同时后端也不知道前端的风格设计是怎么样的，也不能给出精细风格。这个时候就需要上层机制在不改动前后端
+//的情况下来匹配前后端数据。
+{
+  "dataInterface" : { "statics" : true, //表示下一级数据结构是静态的，================= 作为通用结构？
+                                        //所谓通用结构就是每个子结构里都可以用，表达和处理的方式一样
+    "interface1" : { "statics" :true,  //首页
+      "language" : "zh", //表示界面是中文 ============= 作为通用结构？
+      "style" : "css", //风格,值是css，表明服从前端设计的css ================= 作为通用结构？
+      "topMenu" : { "statics" : false,   //顶层菜单
+                                          //当statics为false时，表明下一层结构会出现不固定数量，可能需要循环
+        "menuItem" : {"statics" : true,    //菜单项
+          "text" : "登陆",  //菜单显示的文字
+          "style" : "css", //菜单显示的风格，按照css风格
+          "action" : "/",  //菜单对应的url，默认根目录
+          "method" : "get" //get、post等方式，默认get
+        }
+      },
+      "searchBar" : { "statics" : true,
+        "hotWords" : { "statics" : true,
+          "amount" : 10,
+          "words" : []   //热搜词数组
+        }
+      },
+      "archives" : {
+        "statics": false,
+        "archive": {
+          "statics": true,
+          "image": "",
+          //照片的url
+          "text": ""
+          //档案的情况
+        }
+      },
+      "footer" : {"statics" : false, //底部内容
+        "links" :{"statics" : false,
+          "link" : {"statics" : true,
+            "text" : "",
+            "url" : "",
+            "icon" : ""
+          }
+        }
+      }
+    }
+  }
+}
