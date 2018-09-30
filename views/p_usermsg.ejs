@@ -1,0 +1,44 @@
+<div class="col-md-12">
+    <table class="table">
+        <thead >
+            <tr class="row">
+            <th class="col-md-1">序号</th>
+            <th class="col-md-2">时间</th>
+            <th class="col-md-2">发送方</th>
+            <th class="col-md-6">内容</th>
+            <th class="col-md-1">是否已读</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% for (let i = 0, length = messages.length; i < length; i++){%>
+        <tr class="row" id="<%=messages[i]["_id"]%>">
+            <th  class="col-md-1"><%=i+1%></th>
+            <td  class="col-md-2"><%=messages[i]["sendDate"]%></td>
+        <td  class="col-md-2"><%=messages[i]["sender"]%></td>
+        <td  class="col-md-6"><%=messages[i]["content"]%></td>
+            <% if (messages[i]["isRead"]){%>
+        <td  class="col-md-1">已读</td>
+            <%}else{%>
+            <td  class="col-md-1">未读</td>
+            <%}%>
+        </tr>
+        <%}%>
+        </tbody>
+    </table>
+</div>
+
+
+
+
+<div class="modal fade bd-example-modal-lg" id="p_usermsg_modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content p-5">
+            <p><b>发送人:</b><span id="p_usermsg_p_sender"></span></p>
+            <p><b>接收人：</b><span id=p_usermsg_p_receiver"></span></p>
+            <p><b>消息日期：</b><span id="p_usermsg_p_senddate"></span></p>
+            <p><b>消息内容：</b></p>
+            <div id="p_usermsg_p_content">
+            </div>
+        </div>
+    </div>
+</div>

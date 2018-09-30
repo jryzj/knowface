@@ -1,0 +1,37 @@
+<div class="row mt-5">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+        <p><span>寻人档案总数：</span><span id="p_userhome_doc_qty"></span></p>
+        <p><span>匹配档案总数：</span><span id="p_userhome_matched_qty"></span></p>
+        <p><span>消息总数：</span><span id="p_userhome_msg_qty"></span></p>
+    </div>
+    <div class="col-md-3"></div>
+</div>
+<div class="row mt-5">
+    <div class="col-md-1"></div>
+    <div class="col-md-10 d-flex flex-wrap">
+        <% docs.forEach(doc =>{%>
+        <div class="col-md-3" style="padding:1rem">
+            <div class="card" style="height:25vw;padding-bottom: 150%;overflow: hidden">
+                <!--<div style="width:100%;padding-bottom:100%!important;overflow:hidden">-->
+                    <div style="width:100%;padding-bottom:100%;height:0;overflow:hidden">
+                    <img class="card-img-top" src="<%=doc["img"]%>" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                    <small>姓名:</small>
+                    <small id="name"><%=doc["name"]%></small>
+                    <br>
+                    <small>文档编号:</small>
+                    <small id="id"><%=doc["id"]%></small>
+                    <br>
+                    <small>简述:</small>
+                    <br>
+                    <small class="card-text" id="breif"><%=doc["brief"]%>
+                    </small>
+                </div>
+            </div>
+        </div>
+        <%})%>
+    </div>
+    <div class="col-md-1"></div>
+</div>

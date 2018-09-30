@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--title-->
+    <!--<title>knowface</title>-->
+    <%- include('header', urlpath) %>
+    <!--title-->
+    <link href="https://cdn.bootcss.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+
+    <script src="https://cdn.bootcss.com/popper.js/1.14.3/umd/popper.min.js"></script>
+
+    <script src="https://cdn.bootcss.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+
+    <!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+    <script src="https://cdn.bootcss.com/holder/2.9.4/holder.min.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/css/kface.css">
+</head>
+<body>
+<div class="container">
+    <!--topmeun-->
+
+    <%- include('topmenu') %>
+
+    <!--topmeun-->
+
+
+    <!--content-->
+
+    <%- include('content') %>
+
+    <!--content-->
+
+    <!--footer-->
+    <div class="text-center"><p>Hello, this is a practice to merge internet, big-data and AI.</p>
+        <p>Perhaps something will happen. Enjoy!</p>
+    </div>
+    <!--footer-->
+</div>
+    <%- include('js') %>
+</body>
+</html>

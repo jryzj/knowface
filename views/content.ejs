@@ -1,0 +1,48 @@
+
+
+<% switch (urlpath) {
+    case "/" :
+%>
+    <%- include("p_home")%>
+
+<%break;
+    case "/p_signup" :
+%>
+    <%- include("p_signup")%>
+<%break;
+    case "/p_login" :
+%>
+    <%- include("p_login")%>
+<%break;
+case "/user/p_userhome" :
+%>
+    <%- include("p_userhome")%>
+<%break;
+case "/user/p_userdocs" :
+%>
+    <%- include("p_userdocs")%>
+<%break;
+case "/user/p_createdoc" :
+%>
+<%- include("p_createdoc")%>
+<%break;
+case "/user/p_readdoc" :
+%>
+<%- include("p_readdoc")%>
+<%break;
+case "/user/p_updatedoc" :
+%>
+<%- include("p_updatedoc")%>
+<%break;
+case "/p_matchdoc" :%>
+<%- include("p_matchdoc")%>
+<%break;
+case "/p_chkmatch" :%>
+<%- include("p_chkmatch")%>
+<%break;
+case "/user/p_usermsg" :%>
+<%- include("p_usermsg")%>
+<%break;
+case "/user/p_userinfo" :%>
+<%- include("p_userinfo")%>
+<%break;}%>

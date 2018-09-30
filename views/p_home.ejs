@@ -1,0 +1,71 @@
+<div class="d-flex align-items-center"  style="height:15rem;background: url(/img/hometop.jpg);background-size: 100%;background-repeat:no-repeat">
+    <div class="row" style="width:100%">
+    <div class="d-flex col-md-6 justify-content-center align-items-center rounded" style="height:200px">
+            <div class="input-group col-9">
+            <input type="text" class="form-control" placeholder="Recipient's username">
+            <div class="input-group-append">
+                <button class="btn btn-secondary" type="button" id="p_home_btn_search">档案搜索</button>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex col-md-3 justify-content-center align-items-center rounded" style="height:200px">
+                <label class="btn btn-secondary" for="p_home_input_tomatch" style="margin-bottom:0">快速比对</label>
+                <input type="file" class="" id="p_home_input_tomatch" style="visibility: hidden;height:0px;width:0px">
+    </div>
+    <div class="d-flex col-md-3 justify-content-center align-items-center rounded" style="height:200px">
+        <button class="btn btn-secondary" style="margin-bottom:0" id="p_home_btn_chk">查询比对结果</button>
+    </div>
+    </div>
+</div>
+
+<div class="d-flex my-2 row" >
+    <div class="d-flex align-items-center justify-content-center col-md-1 col" style="width:5%">
+        <h1><</h1>
+    </div>
+    <div class="card-deck my-2 col-md-10" id="p_home_div_carrousel">
+    </div>
+    <div class="d-flex align-items-center justify-content-center  col-md-1 col" style="width:5%">
+        <h1>></h1>
+    </div>
+</div>
+
+
+<div class="modal fade" id="p_home_modal_error" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">错误</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                提交失败，请重试。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">好的</button>
+                <!--<button type="button" class="btn btn-primary">退出</button>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="p_home_modal_ok" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">提交成功</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                比对已经开始，请稍后查询结果。期间，请不要关闭浏览器。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="p_matchdoc_modal_btn_ok">好的</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,85 @@
+<div class="row mt-5">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+        <p><span>寻人档案总数：</span><span id="p_userdocs_span_docqty"><%=docqty%></span></p>
+        <p><span>匹配档案总数：</span><span id="p_userdocs_span_matchqty"><%=matchqty%></span></p>
+        <p><span>消息总数：</span><span id="p_userdocs_span_msgqty"><%=msgqty%></span></p>
+        <div class="d-flex justify-content-around">
+            <!--<button class="btn btn-outline-secondary" id="p_userdocs_createdoc" onclick="window.location.href='/user/p_createdoc'">新增档案</button>-->
+            <button class="btn btn-outline-secondary" id="p_userdocs_btn_readdoc">查看档案</button>
+            <button class="btn btn-outline-secondary" id="p_userdocs_btn_createdoc">新增档案</button>
+            <button class="btn btn-outline-secondary" id="p_userdocs_btn_updatedoc" >更新档案</button>
+            <button class="btn btn-outline-secondary"  id="p_userdocs_btn_deletedoc">删除档案</button>
+            <!--<button class="btn btn-outline-secondary" id="p_userdocs_matchedManage" onclick="window.location.href='/user/p_matched_manage'">匹配管理</button>-->
+            <button class="btn btn-outline-secondary" id="p_userdocs_matchedManage">匹配管理</button>
+        </div>
+    </div>
+    <div class="col-md-3"></div>
+</div>
+<div class="row mt-5">
+    <div class="col-md-1"></div>
+    <div class="col-md-10 d-flex flex-wrap" id="p_userdocs_div_docs">
+        <% docs.forEach(doc =>{%>
+        <div class="col-md-3 col-sm-6" style="padding:1rem" id="docid-<%=doc.docname%>">
+            <div class="card p_userdocs_div_card" style="height:35rem">
+                <div style="width:100%;padding-bottom:100%;overflow:hidden">
+                    <figure class="figure" style="width:100%">
+                        <img  src="<%=doc["img"]%>" class="figure-img img-fluid rounded  card-img-top" alt="">
+                    </figure>
+                    <input type="checkbox" id="<%= doc.docname %>" style="position:absolute;top:5%;right:8%"/>
+                </div>
+                <div class="card-body">
+                    <div style="height:20rem;overflow: hidden">
+                    <p>姓名: <span id="name"><%=doc["name"]%></span></p>
+                    <p>文档编号:</p>
+                    <p id="id"><%=doc["docname"]%></p>
+                    <p>相貌特征:</p>
+                    <small class="card-text" id="breif"><%=doc["appearance"]%>
+                    </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%})%>
+    </div>
+    <div class="col-md-1"></div>
+</div>
+
+<div class="modal fade" id="p_userdocs_modal_deletedoc" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel">删除档案</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                确认要删除这些档案吗？
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"id="p_userdocs_btn_delconfirm">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="p_userdocs_modal_error" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">错误</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                操作出现错误，请重试？
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" >确认</button>
+            </div>
+        </div>
+    </div>
+</div>

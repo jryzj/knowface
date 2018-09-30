@@ -1,0 +1,81 @@
+<form name="p_matchdoc_form" id="p_matchdoc_form" class="mt-3" enctype="multipart/form-data" mulitple="multiple">
+     <div class="d-flex justify-content-around mt-5">
+        <label class="btn btn-outline-secondary mb-0" for="p_matchdoc_input_uploadphoto">上传照片</label>
+        <button type="button" class="btn btn-outline-secondary" id="p_matchdoc_btn_delphoto">删除照片</button>
+        <button type="button" class="btn btn-outline-secondary" id="p_matchdoc_btn_tomatch">提交比对</button>
+        <button type="button" class="btn btn-outline-secondary" id="p_matchdoc_btn_exit" >退出</button>
+         <button type="button" class="btn btn-outline-secondary" id="p_matchdoc_btn_chk" >查询比对结果</button>
+    </div>
+    <input type="file" id="p_matchdoc_input_uploadphoto" class="custom-file-input" accept="image/*">
+    <div>
+        <div class="col-10 row offset-1 my-5" id="p_matchdoc_div_photos">
+            <div>
+                《-----上传图片
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+
+<div class="modal fade" id="p_matchdoc_modal_error" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">错误</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                提交失败，请重试。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">好的</button>
+                <!--<button type="button" class="btn btn-primary">退出</button>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="p_matchdoc_modal_exit" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">退出</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                确认不保存，并退出吗？
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="p_matchdoc_btn_exitconfirm">确认</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">不确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="p_matchdoc_modal_ok" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">提交成功</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                比对已经开始，请稍后查询结果。期间，请不要关闭浏览器。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="p_matchdoc_modal_btn_ok">好的</button>
+            </div>
+        </div>
+    </div>
+</div>

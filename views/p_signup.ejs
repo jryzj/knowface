@@ -1,0 +1,70 @@
+<div id="p_signup">
+<form  name="signup_form"  id="p_signup_form" enctype="multipart/form-data" >
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" class="form-control" id="p_signup_input_username" name="username">
+            </div>
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" class="form-control" id="p_signup_input_password1" name="password1">
+            </div>
+            <div class="form-group">
+                <label for="password">再次输入密码:</label>
+                <input type="password" class="form-control" id="p_signup_input_password2" name="password2">
+            </div>
+            <div class="form-group">
+                <label for="realname">姓名:</label>
+                <input type="text" class="form-control" id="p_signup_input_realname" name="realname">
+            </div>
+            <div class="form-group">
+                <label for="email">邮箱:</label>
+                <input type="text" class="form-control" id="p_signup_input_email" name="email">
+            </div>
+            <div class="form-group">
+                <label for="phone">联系手机号:</label>
+                <input type="text" class="form-control" id="p_signup_input_phone" name="phone">
+            </div>
+        </div>
+        <div class="col-md-2 "></div>
+        <div class="col-md-4  d-flex flex-column justify-content-center">
+            <div class="d-flex justify-content-center">
+                <div style="width:30%;padding-bottom:30%;height:0">
+                <img src="/img/avator.jpg" class="img-thumbnail mt-2" alt="" style="width:100%" id="p_signup_img_avator">
+                </div>
+            </div>
+            <div class="custom-file my-5 d-flex justify-content-center">
+                <label class="btn btn-outline-secondary mb-0"  for="p_signup_btn_uploadphoto" >选择头像文件</label>
+            </div>
+            <input type="file" class="custom-file-input" id="p_signup_btn_uploadphoto" name="filename" accept="image/*">
+            <div class="d-flex justify-content-around my-3" >
+                <button type="button" class="btn btn-outline-secondary" id="p_signup_btn_submit">提交</button>
+                <button type="button" class="btn btn-outline-secondary" id="p_signup_btn_cancel">取消</button>
+            </div>
+        </div>
+        <div class="col-md-1 "></div>
+    </div>
+</form>
+</div>
+
+
+<div class="modal fade" id="p_signup_modal_error" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="">错误</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="p_signup_modal_errormsg">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" >确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+

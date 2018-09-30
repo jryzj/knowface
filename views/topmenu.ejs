@@ -1,0 +1,106 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark my-2">
+    <a class="navbar-brand mr-auto" href="#">KFace</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse"id="navbarNavAltMarkup">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
+            <% switch (urlpath) {
+                case "/" :
+                case "/p_matchdoc" :
+                case "/p_chkmatch" :
+                        if (username) {%>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/user/p_userdocs">寻人档案管理</a></li>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/user/p_usermsg">消息管理</a></li>
+            <%}else{%>
+
+            <%}%>
+            <%break;
+                case "/p_signup" :
+                case "/p_login" :
+            %>
+
+            <%break;
+                case "/user/p_userhome" :
+                case "/user/p_userdocs" :
+                case "/user/p_createdoc" :
+                case "/user/p_readdoc" :
+                case "/user/p_updatedoc" :
+                case "/user/p_usermsg" :
+            case "/user/p_userinfo" :
+            case "/user/p_updateuserinfo" :
+                            %>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/user/p_userdocs">寻人档案管理</a></li>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/user/p_usermsg">消息管理</a></li>
+            <%break;
+                case "/admin" :%>
+            <%break;
+                case "/admin/p_usermanage" :
+                case "/admin/p_updateuser" :
+                case "/admin/p_addadmin" :
+                case "/admin/p_docmanage" :
+                case "/admin/p_updatedoc" :
+                case "/admin/p_matchmanage" :
+                case "/admin/p_msgmanage" :
+                    case "/admin/p_sendmsg" :
+            %>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/admin/p_usermanage">用户管理</a></li>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/admin/p_docmanage">档案管理</a></li>
+            <li class="nav-item mr-auto"><a class="nav-link" href="/admin/p_msgmanage">消息管理</a></li>
+            <%break;}%>
+        </ul>
+
+
+        <!--靠右的菜单-->
+        <ul class="navbar-nav">
+            <% switch (urlpath) {
+            case "/" :
+                case "/p_matchdoc" :
+            case "/p_chkmatch" :
+            if (username) {%>
+            <li class="nav-item"> <a class="nav-link" href="/p_matchdoc">照片比对</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/user/p_userinfo"><%=username%>用户</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/user/p_logout">退出</a></li>
+            <%}else{%>
+            <li class="nav-item"> <a class="nav-link" href="/p_matchdoc">照片比对</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/p_login">登陆</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/p_signup">注册</a></li>
+            <%}%>
+            <%break;
+                case "/p_signup" :
+                case "/p_login" :
+            %>
+            <li class="nav-item"> <a class="nav-link" href="/p_matchdoc">照片比对</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/p_login">登陆</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/p_signup">注册</a></li>
+            <%break;
+                case "/user/p_userhome" :
+                case "/user/p_userdocs" :
+                case "/user/p_createdoc" :
+                case "/user/p_readdoc" :
+                case "/user/p_updatedoc" :
+                case "/user/p_usermsg" :
+                case "/user/p_userinfo" :
+            case "/user/p_updateuserinfo" :
+            %>
+            <li class="nav-item"> <a class="nav-link" href="/p_matchdoc">照片比对</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/user/p_userinfo"><%=username%>用户</a></li>
+            <li class="nav-item"> <a class="nav-link" href="/user/p_logout">退出</a></li>
+            <%break;
+            case "/admin" :%>
+            <%break;
+                case "/admin/p_usermanage" :
+                case "/admin/p_updateuser" :
+                case "/admin/p_addadmin" :
+                case "/admin/p_docmanage" :
+                case "/admin/p_updatedoc" :
+                case "/admin/p_matchmanage" :
+                case "/admin/p_msgmanage" :
+                case "/admin/p_sendmsg" :
+            %>
+            <li class="nav-item"> <a class="nav-link" href="/admin/logout">退出</a></li>
+            <%break;}%>
+        </ul>
+    </div>
+</nav>

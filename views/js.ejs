@@ -1,0 +1,37 @@
+<!--  需要调用的js  -->
+<% switch (urlpath) {
+    case "/" :
+%>
+    <script src="/js/p_home.js"></script>
+<%break;
+case "/p_signup" :%>
+<script src="/js/p_signup.js">
+</script>
+<%break;
+case "/p_login" :%>
+<script src="/js/p_login.js">
+</script>
+<%break;
+case "/user/p_userdocs" :%>
+<script src="/js/p_userdocs.js"></script>
+<%break;
+case "/user/p_createdoc" :%>
+<script src="/js/p_createdoc.js">
+</script>
+<%break;
+case "/user/p_readdoc" :%>
+<script src="/js/p_readdoc.js"></script>
+<%break;
+case "/user/p_updatedoc" :%>
+<script src="/js/p_updatedoc.js"></script>
+<%break;
+case "/p_matchdoc" :%>
+<script src="/js/p_matchdoc.js">
+</script>
+<%break;
+case "/p_chkmatch" :%>
+<script src="/js/p_chkmatch.js"></script>
+<%break;
+case "/user/p_usermsg" :%>
+<script src="/js/p_usermsg.js"></script>
+<%break;}%>

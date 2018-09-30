@@ -1,0 +1,93 @@
+<form name="p_updatedoc_form" id="p_updatedoc_form" class="mt-3" enctype="multipart/form-data" mulitple="multiple">
+    <div class="form-group row">
+        <div class="col">
+            <label class="col-form-label">文档编号 :</label><span class="ml-2"
+                                                              id="p_updatedoc_p_docid"><%=docname%></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col input-group">
+            <label class="col-form-label">姓名 :</label>
+            <input class="form-control ml-2" type="text" name="name" id="p_updatedoc_input_name" value="<%=name%>">
+        </div>
+
+        <div class="col input-group">
+            <label class="col-form-label">失联地点 :</label>
+            <input class="form-control ml-2" type="text" name="location" id="p_updatedoc_input_location" value="<%=location%>">
+        </div>
+
+        <div class="col input-group">
+            <label class="col-form-label">失联时间 :</label>
+            <input class="form-control ml-2" type="text" name="date" id="p_updatedoc_input_date" value="<%=date%>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-form-label">相貌特征 :</label><br>
+        <textarea name="appearance" id="p_updatedoc_textarea_appearance" style="width:100%" cols="100%" rows="3"><%=appearance%></textarea>
+        <label class="col-form-label">失联情况 :</label><br>
+        <textarea name="appearance" id="p_updatedoc_textarea_descripttion" style="width:100%" cols="100%" rows="3"><%=description%></textarea>
+
+    </div>
+    <div class="d-flex justify-content-around mt-5">
+        <label class="btn btn-outline-secondary mb-0" for="p_updatedoc_input_uploadphoto">上传照片</label>
+        <button type="button" class="btn btn-outline-secondary" id="p_updatedoc_btn_delphoto">删除照片</button>
+        <button type="button" class="btn btn-outline-secondary" id="p_updatedoc_btn_savedoc">保存并退出</button>
+        <button type="button" class="btn btn-outline-secondary" id="p_updatedoc_btn_exit" >不存退出</button>
+    </div>
+    <input type="file" id="p_updatedoc_input_uploadphoto" class="custom-file-input" accept="image/*">
+    <div>
+        <div class="col-10 row offset-1 my-5" id="p_updatedoc_div_photos">
+            <%photourls.forEach((photourl, i) => {%>
+            <div class="col-3 photo" style="padding:1rem" id="photo-<%=i%>">
+                <div class="img-thumbnail" style="width:100%;height:15vw;overflow:hidden">
+                    <img class="card-img-top" src="<%=photourl%>" alt="Card image cap">
+                    <input type="checkbox" id="photochked-<%=i%>" style="position:absolute;z-index:1;right:15%;top:15%">
+                </div>
+            </div>
+            <%})%>
+
+        </div>
+
+    </div>
+
+</form>
+
+<div class="modal fade" id="p_updatedoc_modal_error" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                保存失败，请重试。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">好的</button>
+                <!--<button type="button" class="btn btn-primary">退出</button>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="p_updatedoc_modal_exit" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">退出</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                确认不保存，并退出吗？
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="p_updatedoc_btn_exitconfirm">确认</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">不确认</button>
+            </div>
+        </div>
+    </div>
+</div>
