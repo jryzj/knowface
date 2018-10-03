@@ -13,7 +13,7 @@
         <% for (let i = 0, length = messages.length; i < length; i++){%>
         <tr class="row" id="<%=messages[i]["_id"]%>">
             <th  class="col-md-1"><%=i+1%></th>
-            <td  class="col-md-2"><%=messages[i]["sendDate"]%></td>
+            <td  class="col-md-2"><%=messages[i]["sendDate"].toLocaleString()%></td>
         <td  class="col-md-2"><%=messages[i]["sender"]%></td>
         <td  class="col-md-6"><%=messages[i]["content"]%></td>
             <% if (messages[i]["isRead"]){%>
