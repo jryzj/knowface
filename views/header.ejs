@@ -1,3 +1,5 @@
+<meta charset="UTF-8">
+
 <% switch (urlpath) {
  case  "/" : %>
 <title>knowface home</title>
@@ -5,6 +7,72 @@
 case "/registration" : %>
 <title>knowface registration</title>
 <%break;
+ case "/admin/p_usermanage" :
+ case "/admin/p_updateuser" :
+ case "/admin/p_addadmin" :
+ case "/admin/p_docmanage" :
+ case "/admin/p_updatedoc" :
+ case "/admin/p_matchmanage" :
+ case "/admin/p_msgmanage" :
+ case "/admin/p_sendmsg" :
+ case "/admin/p_accessmanage" :%>
+<title>knowface-admin</title>
+<%break;
 default :%>
 <title>knowface</title>
+<% } %>
+
+
+<link href="https://cdn.bootcss.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+<!--<script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="https://cdn.bootcss.com/popper.js/1.14.3/umd/popper.min.js"></script>
+
+
+<script src="https://cdn.bootcss.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+
+<!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.min.js"></script>
+
+
+<link rel="stylesheet" href="http://ico.z01.com/zico.min.css" rel="stylesheet">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="/css/kface.css">
+
+<% switch (urlpath) {
+case  "/" : %>
+
+<% break;
+ case "/admin/p_usermanage" :
+ case "/admin/p_updateuser" :
+ case "/admin/p_addadmin" :
+ case "/admin/p_docmanage" :
+ case "/admin/p_updatedoc" :
+ case "/admin/p_matchmanage" :
+ case "/admin/p_msgmanage" :
+ case "/admin/p_sendmsg" :
+case "/admin/p_accessmanage" :%>
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+<!--<link rel="stylesheet" type="text/css" href="Editor-1.8.0/css/editor.dataTables.css">-->
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+<%break;
+ default :%>
+
 <% } %>
