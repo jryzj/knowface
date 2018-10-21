@@ -46,10 +46,10 @@ $(function () {
                     },
                     onItemInserted: function (args) {
                         console.log("after item insert");
-
                     },
                     onItemDeleting: function (args) {
                         console.log("before item deleted");
+                        console.log(args);
                         return $.ajax({
                             url: "/admin/access/operator",
                             data: args.item,
@@ -91,11 +91,13 @@ $(function () {
                                     type : "POST",
                                     data : item,
                                     success : function (result) {
-                                        if(result == "ok"){
+                                        if(result.state == "ok"){
+                                            console.log("post ok");
+                                            item._id = result.result._id;
                                             def.resolve();
-                                            console.log(result);
                                         }else{
-                                            alert("数据请求发生错误，请重试！");
+                                            console.log(result.result);
+                                            alert(result.result);
                                             def.reject();
                                         }
                                     },
@@ -105,6 +107,50 @@ $(function () {
                                     }
                                 });
                                 return def;
+                        },
+                        updateItem : function(item){
+                            let def = $.Deferred();
+                            $.ajax({
+                                url : "/admin/access/operator",
+                                type : "PUT",
+                                data : item,
+                                success : function (result) {
+                                    if(result == "ok"){
+                                        def.resolve();
+                                        console.log(result);
+                                    }else{
+                                        alert("数据请求发生错误，请重试！");
+                                        def.reject();
+                                    }
+                                },
+                                error : function (XMLHttpRequest, textStatus, errorThrown) {
+                                    alert("数据请求发生错误，请重试！");
+                                    def.reject();
+                                }
+                            });
+                            return def;
+                        },
+                        deleteItem : function(item){
+                            let def = $.Deferred();
+                            $.ajax({
+                                url : "/admin/access/operator",
+                                type : "DELETE",
+                                data : item,
+                                success : function (result) {
+                                    if(result == "ok"){
+                                        def.resolve();
+                                        console.log(result);
+                                    }else{
+                                        alert("数据请求发生错误，请重试！");
+                                        def.reject();
+                                    }
+                                },
+                                error : function (XMLHttpRequest, textStatus, errorThrown) {
+                                    alert("数据请求发生错误，请重试！");
+                                    def.reject();
+                                }
+                            });
+                            return def;
                         }
                     }
                 });
