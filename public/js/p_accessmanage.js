@@ -1,161 +1,318 @@
 /* Practice by JERRY, created on 2018/10/10*/
 $(function () {
-    let groupGrid, operatorGrid, roleList = [], resourceList = [], processList = [], ruleList = [], userRoleList = [],
+    let groupGrid, operatorGrid, operatorGroupGrid, roleGrid, resourceList = [], processList = [], ruleList = [],
+        userRoleList = [],
         accessList = [];
     let groupname = [];
+    let operatorData = [], operatorGroupData = [];
     // let groupSkip = 0, groupLimit = 10;
     jsGrid.locale("zh-cn");
 
     //operator表
-        if (!operatorGrid) {
-                operatorGrid = $("#p_accessmanage_table_operator").jsGrid({
-                    width: "100%",
-                    inserting: true,
-                    filtering : true,
-                    editing: true,
-                    sorting: true,
-                    paging: true,
-                    // data: data,
-                    autoload : true,
-                    fields: [
-                        {name: "_id", type: "text", visible: false},
-                        {name: "operator", type: "text", title: "操作员名"},
-                        {name: "password", type: "text", title: "密码"},
-                        {type: "control"}
-                    ],
-                    onItemInserting: function (args) {
-                        console.log("before item insert");
-                        console.log(args.item);
-                        let message = ``;
-                        let reg = /^[a-zA-Z0-9_-]{8,32}$/;  //用户名正则，8到32位（字母，数字，下划线，减号）
-                        if (!reg.test(args.item.operator)){
-                            message += `*用户名不符合规则，必须是8到32个字符组成，字符为英文字母大小写、数字、下划线、中划线。\n\r`;
-                        }
+    if (!operatorGrid) {
+        operatorGrid = $("#p_accessmanage_table_operator").jsGrid({
+            width: "100%",
+            inserting: true,
+            filtering: true,
+            editing: true,
+            sorting: true,
+            paging: true,
+            // data: data,
+            autoload: true,
+            fields: [
+                {name: "_id", type: "text", visible: false},
+                {name: "operator", type: "text", title: "操作员名", editing: false},
+                {
+                    name: "password", type: "text", title: "密码", sorting: false, filtering: false,
+                    itemTemplate: function (value) {
+                        return "********";
+                    }
+                },
+                {type: "control"}
+            ],
+            onItemInserting: function (args) {
+                console.log("before item insert");
+                console.log(args.item);
+                let message = ``;
+                let reg = /^[a-zA-Z0-9_-]{8,32}$/;  //用户名正则，8到32位（字母，数字，下划线，减号）
+                if (!reg.test(args.item.operator)) {
+                    message += `*用户名不符合规则，必须是8到32个字符组成，字符为英文字母大小写、数字、下划线、中划线。\n\r`;
+                }
 
-                        reg = /^.*(?=.{8,})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$/; //密码强度正则，最少8位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符
+                reg = /^.*(?=.{8,})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$/; //密码强度正则，最少8位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符
 
-                        if (!reg.test(args.item.password)){
-                            message += `*密码不符合规则，必须是最少8位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符。\n\r`;
-                        }
+                if (!reg.test(args.item.password)) {
+                    message += `*密码不符合规则，必须是最少8位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符。\n\r`;
+                }
 
-                        if(message.length >0){
+                if (message.length > 0) {
+                    args.cancel = true;
+                    alert(message);
+                }
+
+            },
+            onItemInserted: function (args) {
+                console.log("after item insert");
+            },
+            onItemDeleting: function (args) {
+                console.log("before item deleted");
+                console.log(args);
+                return $.ajax({
+                    url: "/admin/access/operator",
+                    data: args.item,
+                    type: "DELETE",
+                    async: false,
+                    success: function (result) {
+                        if (result != "ok") {
                             args.cancel = true;
-                            alert(message);
+                            alert(result);
                         }
-
                     },
-                    onItemInserted: function (args) {
-                        console.log("after item insert");
-                    },
-                    onItemDeleting: function (args) {
-                        console.log("before item deleted");
-                        console.log(args);
-                        return $.ajax({
-                            url: "/admin/access/operator",
-                            data: args.item,
-                            type: "DELETE",
-                            async: false,
-                            success: function (result) {
-                                if (result != "ok") {
-                                    args.cancel = true;
-                                    alert(result);
-                                }
-                            },
-                            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                args.cancel = true;
-                                alert("删除出错，请重试！")
-                            }
-                        });
-
-
-                    },
-                    controller: {
-                        loadData : function(filter){
-                                return $.ajax({
-                                url : "/admin/access/operator",
-                                type : "GET",
-                                success : function (result) {
-                                    if(result != "error"){
-                                        console.log(result);
-                                    }
-                                },
-                                error : function (err) {
-                                    alert("数据请求发生错误，请重试！");
-                                }
-                            });
-                        },
-                        insertItem: function(item){
-                            let def = $.Deferred();
-                                $.ajax({
-                                    url : "/admin/access/operator",
-                                    type : "POST",
-                                    data : item,
-                                    success : function (result) {
-                                        if(result.state == "ok"){
-                                            console.log("post ok");
-                                            item._id = result.result._id;
-                                            def.resolve();
-                                        }else{
-                                            console.log(result.result);
-                                            alert(result.result);
-                                            def.reject();
-                                        }
-                                    },
-                                    error : function (XMLHttpRequest, textStatus, errorThrown) {
-                                        alert("数据请求发生错误，请重试！");
-                                        def.reject();
-                                    }
-                                });
-                                return def;
-                        },
-                        updateItem : function(item){
-                            let def = $.Deferred();
-                            $.ajax({
-                                url : "/admin/access/operator",
-                                type : "PUT",
-                                data : item,
-                                success : function (result) {
-                                    if(result == "ok"){
-                                        def.resolve();
-                                        console.log(result);
-                                    }else{
-                                        alert("数据请求发生错误，请重试！");
-                                        def.reject();
-                                    }
-                                },
-                                error : function (XMLHttpRequest, textStatus, errorThrown) {
-                                    alert("数据请求发生错误，请重试！");
-                                    def.reject();
-                                }
-                            });
-                            return def;
-                        },
-                        deleteItem : function(item){
-                            let def = $.Deferred();
-                            $.ajax({
-                                url : "/admin/access/operator",
-                                type : "DELETE",
-                                data : item,
-                                success : function (result) {
-                                    if(result == "ok"){
-                                        def.resolve();
-                                        console.log(result);
-                                    }else{
-                                        alert("数据请求发生错误，请重试！");
-                                        def.reject();
-                                    }
-                                },
-                                error : function (XMLHttpRequest, textStatus, errorThrown) {
-                                    alert("数据请求发生错误，请重试！");
-                                    def.reject();
-                                }
-                            });
-                            return def;
-                        }
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        args.cancel = true;
+                        alert("删除出错，请重试！")
                     }
                 });
+            },
+            onItemUpdating: function (args) {
+                console.log(args);
+                if (JSON.stringify(args.item) == JSON.stringify(args.previousItem)) {
+                    args.cancel = true;
+                    alert("数据没有变化！")
+                }
+            },
+            controller: {
+                loadData: function (filter) {
+                    if (operatorData.length == 0) {
+                        console.log(this);
+                        console.log("loadData");
+                        console.log(filter);
+                        return $.ajax({
+                            url: "/admin/access/operator",
+                            type: "GET",
+                            success: function (result) {
+                                if (result != "error") {
+                                    operatorData = $.extend(true, [], result);
+                                    console.log(operatorData);
+                                }
+                            },
+                            error: function (err) {
+                                alert("数据请求发生错误，请重试！");
+                            }
+                        });
+                    } else {
+                        console.log(filter);
+                        let def = $.Deferred();
+                        for (let i = 0, length = operatorData.length; i < length; i++) {
+                            if (operatorData[i].operator == filter.operator) {
+                                return [operatorData[i]];
+                            }
+                        }
+                        def.resolve([]);
+                    }
+                },
+                insertItem: function (item) {
+                    let def = $.Deferred();
+                    $.ajax({
+                        url: "/admin/access/operator",
+                        type: "POST",
+                        data: item,
+                        success: function (result) {
+                            if (result.state == "ok") {
+                                console.log("post ok");
+                                item._id = result.result._id;
+                                def.resolve();
+                            } else {
+                                console.log(result.result);
+                                alert(result.result);
+                                def.reject();
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            alert("数据请求发生错误，请重试！");
+                            def.reject();
+                        }
+                    });
+                    return def;
+                },
+                updateItem: function (item) {
+                    let def = $.Deferred();
+                    $.ajax({
+                        url: "/admin/access/operator",
+                        type: "PUT",
+                        data: item,
+                        success: function (result) {
+                            if (result.state == "ok") {
+                                def.resolve();
+                                console.log(result);
+                            } else {
+                                alert(result.result);
+                                def.reject();
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            alert("数据请求发生错误，请重试！");
+                            def.reject();
+                        }
+                    });
+                    return def;
+                },
+                deleteItem: function (item) {
+                    let def = $.Deferred();
+                    $.ajax({
+                        url: "/admin/access/operator",
+                        type: "DELETE",
+                        data: item,
+                        success: function (result) {
+                            if (result == "ok") {
+                                def.resolve();
+                                console.log(result);
+                            } else {
+                                alert("数据请求发生错误，请重试！");
+                                def.reject();
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            alert("数据请求发生错误，请重试！");
+                            def.reject();
+                        }
+                    });
+                    return def;
+                }
+            }
+        });
+    }
+
+    //operator分组表
+    $("#p_accessmanage_nav-operatorgroup-tab").click(function(){
+        console.log("dfgsdf");
+        if (!operatorGroupGrid) {
+        operatorGroupGrid = $("#p_accessmanage_table_operatorgroup").jsGrid({
+            width: "100%",
+            inserting: true,
+            filtering: true,
+            editing: true,
+            sorting: true,
+            paging: true,
+            // data: [{_id: "sdfdasf", operator : "adfa", operatorGroup : "group"}],
+            autoload: true,
+            fields: [
+                {name: "_id", type: "text", visible: false},
+                {name: "operator", type: "text", title: "操作员名", editing: false},
+                {name: "operatorGroup", type: "text", title: "分组名"},
+                {type: "control"}
+            ],
+            controller: {
+                loadData: function (filter) {
+                    console.log("loadData");
+                    let def = $.Deferred();
+                    if (operatorGroupData.length == 0) {
+                        console.log(this);
+                        console.log(filter);
+                        $.ajax({
+                            url: "/admin/access/operatorGroup",
+                            type: "GET",
+                            success: function (result) {
+                                if (result.state != "error") {
+                                    operatorGroupData = $.extend(true, {}, result);
+                                    console.log(operatorGroupData);
+                                    def.resolve(result.data);
+                                }
+                            },
+                            error: function (err) {
+                                alert("数据请求发生错误，请重试！");
+                                def.reject();
+                            }
+                        });
+                        return def;
+                    } else {
+                        console.log(filter);
+                        for (let i = 0, length = operatorGroupData.data.length; i < length; i++) {
+                            let tag = 1;
+                            for (key in filter) {
+                                if (filter.key != "") {
+                                    if (filter.key != operatorGroupData.data[i].key) {
+                                        tag = 0;
+                                    }
+                                }
+                            }
+                            if (tag) return [operatorGroupData.data[i]];
+                        }
+                    }
+                },
+            insertItem: function (item) {
+                let def = $.Deferred();
+                $.ajax({
+                    url: "/admin/access/operator",
+                    type: "POST",
+                    data: item,
+                    success: function (result) {
+                        if (result.state == "ok") {
+                            console.log("post ok");
+                            item._id = result.result._id;
+                            def.resolve();
+                        } else {
+                            console.log(result.result);
+                            alert(result.result);
+                            def.reject();
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert("数据请求发生错误，请重试！");
+                        def.reject();
+                    }
+                });
+                return def;
+            },
+            updateItem: function (item) {
+                let def = $.Deferred();
+                $.ajax({
+                    url: "/admin/access/operator",
+                    type: "PUT",
+                    data: item,
+                    success: function (result) {
+                        if (result.state == "ok") {
+                            def.resolve();
+                            console.log(result);
+                        } else {
+                            alert(result.result);
+                            def.reject();
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert("数据请求发生错误，请重试！");
+                        def.reject();
+                    }
+                });
+                return def;
+            },
+            deleteItem: function (item) {
+                let def = $.Deferred();
+                $.ajax({
+                    url: "/admin/access/operator",
+                    type: "DELETE",
+                    data: item,
+                    success: function (result) {
+                        if (result == "ok") {
+                            def.resolve();
+                            console.log(result);
+                        } else {
+                            alert("数据请求发生错误，请重试！");
+                            def.reject();
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert("数据请求发生错误，请重试！");
+                        def.reject();
+                    }
+                });
+                return def;
+            }
         }
 
+        });
+    }
+});
 
 
 
@@ -265,9 +422,9 @@ $(function () {
                                 type: "POST",
                                 async: false,
                                 success: function (result) {
-                                    if (result != "ok") {
+                                    if (result.state != "ok") {
                                         args.cancel = true;
-                                        alert(result);
+                                        alert(result.result);
                                     }
                                 },
                                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -289,9 +446,9 @@ $(function () {
                             type: "DELETE",
                             async: false,
                             success: function (result) {
-                                if (result != "ok") {
+                                if (result.state != "ok") {
                                     args.cancel = true;
-                                    alert(result);
+                                    alert(result.result);
                                 }
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
