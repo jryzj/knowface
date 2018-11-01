@@ -1,10 +1,10 @@
 /* Practice by JERRY, created on 2018/10/10*/
 $(function () {
-    let groupGrid, operatorGrid, operatorGroupGrid, roleGrid, resourceGrid, processList = [], ruleList = [],
+    let groupGrid, operatorGrid, operatorGroupGrid, roleGrid, resourceGrid, ruleGrid, processList = [], ruleList = [],
         userRoleList = [],
         accessList = [];
-    let groupName = [], operatorGroupName=[], roleGroupName = [];
-    let operatorData = [], operatorGroupData = [], roleData = [], resourceData = [];
+    let groupName = [], operatorGroupName=[], roleGroupName = [], resourceGroupName = [], ruleTypeName = [];
+    let operatorData = [], operatorGroupData = [], roleData = [], resourceData = [], ruleData = [];
     let groupChanged = {};
     // let groupSkip = 0, groupLimit = 10;
     jsGrid.locale("zh-cn");
@@ -351,9 +351,8 @@ $(function () {
                             for (let i = 0, length = operatorGroupData.length, l = length-1; i < length; i++) {
                                 if(operatorGroupData[i]._id == item._id) {
                                     if (i != l) {
-                                        operatorGroupData[i]._id = operatorGroupData[l]._id;
-                                        operatorGroupData[i].operator = operatorGroupData[l].operator;
-                                        operatorGroupData[i].operatorGroup = operatorGroupData[l].operatorGroup;
+                                        operatorGroupData[i] = operatorGroupData[l];
+                                        i = length;
                                     }
                                     operatorGroupData.pop();
                                 }
@@ -505,7 +504,7 @@ $(function () {
                                     console.log("post ok");
                                     item._id = result.result._id;
                                     roleData.push(item);  //if insert successfully, update local buffer.
-                                    def.resolve();
+                                    def.resolve(item);
                                 } else {
                                     console.log(result.result);
                                     alert(result.result);
@@ -607,70 +606,73 @@ $(function () {
                 autoload: true,
                 fields: [
                     {name: "_id", type: "text", visible: false},
-                    {name: "resource", type: "text", title: "资源内容", editing: false},
+                    {name: "resource", type: "text", title: "资源内容", editing: false,validate: "required"},
                     {name: "exp", type: "text", title: "动态规则", editing: false},
-                    {name: "resourceId", type: "text", title: "资源Id", editing: false, visible: false},
+                    {name: "resourceId", type: "text", title: "资源Id", inserting: false, editing: false},
                     {name: "resourceKind", type: "text", title: "资源类型", editing: false},
-                    {name: "dynamic", type: "text", title: "动态与否", editing: false},
-                    {name: "container", type: "text", title: "容器内容", editing: false},
-                    {name: "resourceGroup", type: "text", title: "分组名",
+                    {name: "dynamic", type: "select", title: "动态与否", editing: false
+                        , items : [{name : "", value : ""}, {name : "否", value : false}, {name : "是", value : true}], textField : "name", valueField : "value"
+                        ,validate: "required"},
+                    {name: "containerId", type: "text", title: "容器内容Id", editing: false},
+                    {name: "resourceGroup", type: "select", title: "分组名", items : [{name : ""}],  textField : "name", valueField : "name", validate: "required"
+                        /*,
                         insertTemplate: function (value) {
                             console.log("insertTemplate");
-                            if(roleGroupName.length){
+                            if(resourceGroupName.length){
                                 let select = "";
-                                for (let i = 0, length = roleGroupName.length; i < length; i++) {
-                                    select += "<option value=" + roleGroupName[i] + ">" + roleGroupName[i] + "</option>";
+                                for (let i = 0, length = resourceGroupName.length; i < length; i++) {
+                                    select += "<option value=" + resourceGroupName[i] + ">" + resourceGroupName[i] + "</option>";
                                 }
-                                select = "<select name='roleGroup' id='rolegroup_inserttemp'>" +select + "</select>";
+                                select = "<select name='resourceGroup' id='resourcegroup_inserttemp'>" +select + "</select>";
 
                                 return select;
                             }
                         },
                         insertValue: function () {
                             console.log(this);
-                            return $("#rolegroup_inserttemp").val();
+                            return $("#resourcegroup_inserttemp").val();
                         },
                         editTemplate: function(value, item) {
                             console.log(value, item);
                             console.log("editTemplate");
-                            if(roleGroupName.length){
+                            if(resourceGroupName.length){
                                 let select = "";
-                                for (let i = 0, length = roleGroupName.length; i < length; i++) {
-                                    if(value == roleGroupName[i])
-                                        select += "<option value=" + roleGroupName[i] + " selected = 'selected'>" + roleGroupName[i] + "</option>";
+                                for (let i = 0, length = resourceGroupName.length; i < length; i++) {
+                                    if(value == resourceGroupName[i])
+                                        select += "<option value=" + resourceGroupName[i] + " selected = 'selected'>" + resourceGroupName[i] + "</option>";
                                     else
-                                        select += "<option value=" + roleGroupName[i] + ">" + roleGroupName[i] + "</option>";
+                                        select += "<option value=" + resourceGroupName[i] + ">" + resourceGroupName[i] + "</option>";
                                 }
-                                select = "<select name='roleGroup' id='rolegroup_edittemp'>" +select + "</select>";
+                                select = "<select name='resourceGroup' id='resourcegroup_edittemp'>" +select + "</select>";
 
                                 return select;
                             }
 
                         },
                         editValue : function () {
-                            return $("#rolegroup_edittemp").val();
-                        }
+                            return $("#resourcegroup_edittemp").val();
+                        }*/
 
                     },
                     {type: "control"}
                 ],
                 controller: {
                     loadData: function (filter) {
-                        console.log("role loadData");
+                        console.log("resource loadData");
                         let def = $.Deferred();
-                        let grid = $("#p_accessmanage_table_role").data("JSGrid");
+                        let grid = $("#p_accessmanage_table_resource").data("JSGrid");
                         console.log(grid.data);
-                        if (!grid.data.length  || groupChanged.role) {
+                        if (!grid.data.length  || groupChanged.resource) {
                             console.log(this); //这里的this就是controller对象本身
                             console.log(filter);
                             $.ajax({
-                                url: "/admin/access/role",
+                                url: "/admin/access/resource",
                                 type: "GET",
                                 success: function (result) {
                                     if (result.state != "error") {
-                                        roleGroupName = result.groupname;
+                                        resourceGroupName = result.groupname;
                                         groupChanged.role = false;
-                                        $.extend(true, roleData, result.result);
+                                        $.extend(true, resourceData, result.result);
                                         console.log(result);
                                         def.resolve(result.result);
                                     }
@@ -684,16 +686,16 @@ $(function () {
                         } else {
                             console.log("filter",filter);
                             let matched = [];
-                            for (let i = 0, length = roleData.length; i < length; i++) {
+                            for (let i = 0, length = resourceData.length; i < length; i++) {
                                 let tag = 1;
                                 for (let key in filter) {
                                     if (filter[key] !== "") {
-                                        if (filter[key] !== roleData[i][key]) {
+                                        if (filter[key] !== resourceData[i][key]) {
                                             tag = 0;
                                         }
                                     }
                                 }
-                                if (tag) matched.push(roleData[i]);
+                                if (tag) matched.push(resourceData[i]);
                             }
                             return matched;
                         }
@@ -701,15 +703,15 @@ $(function () {
                     insertItem: function (item) {
                         let def = $.Deferred();
                         $.ajax({
-                            url: "/admin/access/role",
+                            url: "/admin/access/resource",
                             type: "POST",
                             data: item,
                             success: function (result) {
                                 if (result.state == "ok") {
                                     console.log("post ok");
                                     item._id = result.result._id;
-                                    roleData.push(item);  //if insert successfully, update local buffer.
-                                    def.resolve();
+                                    resourceData.push(item);  //if insert successfully, update local buffer.
+                                    def.resolve(item);
                                 } else {
                                     console.log(result.result);
                                     alert(result.result);
@@ -727,15 +729,15 @@ $(function () {
                         console.log(item);
                         let def = $.Deferred();
                         $.ajax({
-                            url: "/admin/access/role",
+                            url: "/admin/access/resource",
                             type: "PUT",
                             data: item,
                             success: function (result) {
                                 if (result.state == "ok") {
-                                    for (let i = 0, length = roleData.length; i < length; i++) {
-                                        if(roleData[i]._id == item._id){
-                                            roleData[i].operator = item.operator;
-                                            roleData[i].operatorGroup = item.operatorGroup;
+                                    for (let i = 0, length = resourceData.length; i < length; i++) {
+                                        if(resourceData[i]._id == item._id){
+                                            resourceData[i] = item;
+                                            i = length;
                                         }
                                     }
                                     def.resolve();
@@ -755,19 +757,18 @@ $(function () {
                     deleteItem: function (item) {
                         let def = $.Deferred();
                         $.ajax({
-                            url: "/admin/access/role",
+                            url: "/admin/access/resource",
                             type: "DELETE",
                             data: item,
                             success: function (result) {
                                 if (result.state == "ok") {
-                                    for (let i = 0, length = roleData.length, l = length-1; i < length; i++) {
-                                        if(roleData[i]._id == item._id) {
+                                    for (let i = 0, length = resourceData.length, l = length-1; i < length; i++) {
+                                        if(resourceData[i]._id == item._id) {
                                             if (i != l) {
-                                                roleData[i]._id = roleData[l]._id;
-                                                roleData[i].operator = roleData[l].operator;
-                                                roleData[i].operatorGroup = roleData[l].operatorGroup;
+                                                resourceData[i] = resourceData[l];
+                                                i = length;
                                             }
-                                            roleData.pop();
+                                            resourceData.pop();
                                         }
                                     }
                                     def.resolve();
@@ -788,8 +789,186 @@ $(function () {
                 onDataLoaded : function(args){
                     console.log("onDataLoad");
                     console.log(this);
-                    console.log(roleGrid);
+                    console.log(resourceGrid);
                     // let grid = $("#p_accessmanage_table_role").data("JSGrid");
+                    let items =[{name : ""}];
+                    for (let i = 0, length = resourceGroupName.length; i < length; i++){
+                        let item = {name : resourceGroupName[i]};
+                        items.push(item);
+                    }
+                    this.fields[7].items = items;
+                    this._renderGrid();
+                }
+
+            });
+        }
+    });
+
+    $("#p_accessmanage_nav-rule-tab").click(function(){
+        console.log("rule group");
+        if (!ruleGrid || groupChanged.rule) {
+            roleGrid = $("#p_accessmanage_table_rule").jsGrid({
+                width: "100%",
+                inserting: true,
+                filtering: true,
+                editing: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                fields: [
+                    {name: "_id", type: "text", visible: false},
+                    {name: "rule", type: "text", title: "权限名", editing: false, validate: "required"},
+                    {name: "ruleType", type: "select", title: "权限类型", editing: false, items : [{name : ""}]
+                        ,textField : "name", valueField : "name", validate: "required"},
+                    {name: "proRes", type: "text", title: "流程或资源", editing: false, validate: "required"},
+                    {name: "proResType", type: "select", title: "流程或资源类型", editing: false
+                        , items : [{name : ""},{name : "resource"},{name : "group"},{name : "node"},{name : "process"}]
+                        ,textField : "name", valueField : "name", validate: "required"},
+                    {name: "operation", type: "number", title: "操作代码", validate: "required"},
+                    {type: "control"}
+                ],
+                controller: {
+                    loadData: function (filter) {
+                        console.log("rule loadData");
+                        let def = $.Deferred();
+                        let grid = $("#p_accessmanage_table_rule").data("JSGrid");
+                        console.log(grid.data);
+                        if (!grid.data.length  || groupChanged.rule) {
+                            console.log(this); //这里的this就是controller对象本身
+                            console.log(filter);
+                            $.ajax({
+                                url: "/admin/access/rule",
+                                type: "GET",
+                                success: function (result) {
+                                    if (result.state != "error") {
+                                        ruleTypeName = result.groupname;
+                                        groupChanged.rule = false;
+                                        $.extend(true, ruleData, result.result);
+                                        console.log(result);
+                                        def.resolve(result.result);
+                                    }
+                                },
+                                error: function (err) {
+                                    alert("数据请求发生错误，请重试！");
+                                    def.reject();
+                                }
+                            });
+                            return def;
+                        } else {
+                            console.log("filter",filter);
+                            let matched = [];
+                            for (let i = 0, length = ruleData.length; i < length; i++) {
+                                let tag = 1;
+                                for (let key in filter) {
+                                    if (filter[key] !== "" && filter[key] !== undefined) {
+                                        if (filter[key] !== ruleData[i][key]) {
+                                            tag = 0;
+                                        }
+                                    }
+                                }
+                                if (tag) matched.push(ruleData[i]);
+                            }
+                            return matched;
+                        }
+                    },
+                    insertItem: function (item) {
+                        let def = $.Deferred();
+                        $.ajax({
+                            url: "/admin/access/rule",
+                            type: "POST",
+                            data: item,
+                            success: function (result) {
+                                if (result.state == "ok") {
+                                    console.log("post ok");
+                                    item._id = result.result._id;
+                                    ruleData.push(item);  //if insert successfully, update local buffer.
+                                    def.resolve(item);
+                                } else {
+                                    console.log(result.result);
+                                    alert(result.result);
+                                    def.reject();
+                                }
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert("数据请求发生错误，请重试！");
+                                def.reject();
+                            }
+                        });
+                        return def;
+                    },
+                    updateItem: function (item) {
+                        console.log(item);
+                        let def = $.Deferred();
+                        $.ajax({
+                            url: "/admin/access/rule",
+                            type: "PUT",
+                            data: item,
+                            success: function (result) {
+                                if (result.state == "ok") {
+                                    for (let i = 0, length = ruleData.length; i < length; i++) {
+                                        if(ruleData[i]._id == item._id){
+                                            ruleData[i] = item;
+                                            i = length;
+                                        }
+                                    }
+                                    def.resolve();
+                                    console.log(result);
+                                } else {
+                                    alert(result.result);
+                                    def.reject();
+                                }
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert("数据请求发生错误，请重试！");
+                                def.reject();
+                            }
+                        });
+                        return def;
+                    },
+                    deleteItem: function (item) {
+                        let def = $.Deferred();
+                        $.ajax({
+                            url: "/admin/access/rule",
+                            type: "DELETE",
+                            data: item,
+                            success: function (result) {
+                                if (result.state == "ok") {
+                                    for (let i = 0, length = ruleData.length, l = length-1; i < length; i++) {
+                                        if(ruleData[i]._id == item._id) {
+                                            if (i != l) {
+                                                ruleData[i] = ruleData[l];
+                                                i = length;
+                                            }
+                                            ruleData.pop();
+                                        }
+                                    }
+                                    def.resolve();
+                                    console.log(result);
+                                } else {
+                                    alert("数据请求发生错误，请重试！");
+                                    def.reject();
+                                }
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert("数据请求发生错误，请重试！");
+                                def.reject();
+                            }
+                        });
+                        return def;
+                    }
+                },
+                onDataLoaded : function(args){
+                    console.log("onDataLoad");
+                    console.log(this);
+                    console.log(ruleGrid);
+                    // let grid = $("#p_accessmanage_table_role").data("JSGrid");
+                    let items =[{name : ""}];
+                    console.log(ruleTypeName);
+                    for (let i = 0, length = ruleTypeName.length; i < length; i++){
+                        let item = {name : ruleTypeName[i]};
+                        items.push(item);
+                    }
+                    this.fields[2].items = items;
                     this._renderGrid();
                 }
 
