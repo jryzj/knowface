@@ -284,21 +284,21 @@ module.exports = {
                         console.log(req.body);
                         (async function () {
                             let result, state, doc;
-                            doc = await ac.Role.find(req.body);
-                            if(doc.length){
-                                state = "error";
-                                result = "role已经属于该分组!";
-                            }else{
-                                doc = await ac.Role.create(req.body);
-                                console.log(doc);
-                                if (JSON.stringify(doc) != {}) {
-                                    state = "ok";
-                                    result = doc;
-                                } else {
+                                doc = await ac.Role.find(req.body);
+                                if (doc.length) {
                                     state = "error";
-                                    result = "设置role出错，请重试!";
+                                    result = "role已经属于该分组!";
+                                } else {
+                                    doc = await ac.Role.create(req.body);
+                                    console.log(doc);
+                                    if (JSON.stringify(doc) != {}) {
+                                        state = "ok";
+                                        result = doc;
+                                    } else {
+                                        state = "error";
+                                        result = "设置role出错，请重试!";
+                                    }
                                 }
-                            }
 
                             res.set("Content-Type", "application/json");
                             res.send({state : state, result : result});
@@ -480,8 +480,8 @@ module.exports = {
             case "process":
 
                 break;
-            case "rule":
 
+            case "rule":
                 console.log("case rule");
 
                 switch(req.method){
@@ -508,10 +508,10 @@ module.exports = {
                         (async function () {
                             let result, state, doc;
                             doc = await ac.Rule.find(req.body);
-                            if(doc.length){
+                            if (doc.length) {
                                 state = "error";
-                                result = "该rule已经存在!";
-                            }else{
+                                result = "rule已经属于该分组!";
+                            } else {
                                 doc = await ac.Rule.create(req.body);
                                 console.log(doc);
                                 if (JSON.stringify(doc) != {}) {
@@ -536,29 +536,25 @@ module.exports = {
                             let result, state, doc=[];
                             if(!module.exports.isUsed(req.body, "rule")){
                                 //check if the doc is duplicating.
-                                let doc = await ac.Rule.find({rule : req.body.rule, ruleType : req.body.ruleType
-                                    ,procRes : req.body.procRes, procResType : req.body.procResType
-                                    ,operation : req.body.operation});
+                                let doc = await ac.Rule.find({rule : req.body.rule, ruleGroup : req.body.ruleGroup});
                                 if(!doc.length){
                                     doc = await ac.Rule.update({_id : req.body._id}
-                                        , {rule : req.body.rule, ruleType : req.body.ruleType
-                                            ,procRes : req.body.procRes, procResType : req.body.procResType
-                                            ,operation : req.body.operation});
+                                        , {rule : req.body.rule, ruleGroup : req.body.ruleGroup});
                                     console.log(doc); //{ n: 0, nModified: 0, ok: 1 }
                                     if (doc.nModified != 0) {
                                         state = "ok";
                                         result = doc;
                                     } else {
                                         state = "error";
-                                        result = "修改rule出错，请重试!";
+                                        result = "修改rule组出错，请重试!";
                                     }
                                 }else{
                                     state = "error";
-                                    result = "该rule已存在，请修改后重试!";
+                                    result = "该rule组已存在，请修改后重试!";
                                 }
                             }else{
                                 state = "error";
-                                result = "该rule在使用中，不能修改!";
+                                result = "该rule组在使用中，不能修改!";
                             }
 
                             res.set("Content-Type", "application/json");
@@ -570,7 +566,7 @@ module.exports = {
                         console.log("delete rule");
                         console.log(req.body);
                         (async function(){
-                            if(!module.exports.isUsed(req.body, "role")){
+                            if(!module.exports.isUsed(req.body, "rule")){
                                 doc = await ac.Rule.remove({_id : req.body._id});
                                 console.log(doc); //{ n: 0, nModified: 0, ok: 1 }
                                 if (doc.n != 0) {
@@ -578,12 +574,159 @@ module.exports = {
                                     result = doc;
                                 } else {
                                     state = "error";
-                                    result = "删除rule出错，请重试!";
+                                    result = "删除rule组出错，请重试!";
                                 }
 
                             }else{
                                 state = "error";
-                                result = "rule在使用中，不能删除!";
+                                result = "rule组在使用中，不能删除!";
+                            }
+
+                            res.set("Content-Type", "application/json");
+                            res.send({state : state, result : result});
+                        })();
+                        break;
+                }
+
+                break;              
+            case "ruleprores":
+
+                console.log("case ruleprores");
+
+                switch(req.method){
+                    case "GET" :
+                        console.log("get ruleprores");
+                        //查询现有的ruleprores
+                        (async function () {
+                            let doc = await ac.RuleProRes.find({});
+                            console.log(doc);
+
+                            res.set("Content-Type", "application/json");
+                            res.send({state: "ok", result: doc});
+                        })();
+
+                        break;
+                    case "POST" :
+                        console.log("post ruleprores");
+                        console.log(req.body);
+                        (async function () {
+                            let result, state, doc;
+                            doc = await ac.RuleProRes.find(req.body);
+                            if(doc.length){
+                                state = "error";
+                                result = "该ruleprores已经存在!";
+                            }else{
+                                //check if the rule is existing
+                                result = "";
+                                if(req.body.ruleType === "rule"){
+                                    doc = await ac.Rule.find({rule : req.body.rule, ruleGroup : ""});
+                                }else if (req.body.ruleType === "rulegroup")
+                                    doc = await ac.Rule.find({ruleGroup : req.body.rule});
+
+                                if(!doc.length) result += "规则或规则组不存在！";
+
+                                if(req.body.procResType === "resource"){
+                                    doc = await ac.Resource.find({resource : req.body.resource, resourceGroup : ""});
+                                }else if (req.body.proResType === "resourcegroup")
+                                    doc = await ac.Resource.find({resourceGroup : req.body.proRes});
+
+                                if(!doc.length) result += "资源或资源组不存在！";
+
+                                if(result.length === 0){
+                                    doc = await ac.RuleProRes.create(req.body);
+                                    console.log(doc);
+                                    if (JSON.stringify(doc) != {}) {
+                                        state = "ok";
+                                        result = doc;
+                                    } else {
+                                        state = "error";
+                                        result = "设置ruleprores出错，请重试!";
+                                    }
+                                }else
+                                    state = "error";
+                            }
+
+                            res.set("Content-Type", "application/json");
+                            res.send({state : state, result : result});
+                        })();
+
+                        break;
+                    case "PUT" :
+                        //when not used, equals to deleting and creating
+                        console.log("put ruleprores");
+                        console.log(req.body);
+                        (async function(){
+                            let result, state, doc=[];
+                            if(!module.exports.isUsed(req.body, "ruleprores")){
+                                //check if the doc is duplicating.
+                                let doc = await ac.RuleProRes.find({ruleprores : req.body.ruleprores, ruleproresType : req.body.ruleproresType
+                                    ,proRes : req.body.proRes, procResType : req.body.procResType
+                                    ,operation : req.body.operation});
+                                if(!doc.length){
+                                    result = "";
+                                    if(req.body.ruleType === "rule"){
+                                        doc = await ac.Rule.find({rule : req.body.rule, ruleGroup : ""});
+                                    }else if (req.body.ruleType === "group")
+                                        doc = await ac.Rule.find({ruleGroup : req.body.rule});
+
+                                    if(!doc.length) result += "规则或规则组不存在！";
+
+                                    if(req.body.procResType === "resource"){
+                                        doc = await ac.Resource.find({resource : req.body.resource, resourceGroup : ""});
+                                    }else if (req.body.proResType === "resourcegroup")
+                                        doc = await ac.Resource.find({resource : req.body.proRes, resourceGroup : req.body.proResType});
+
+                                    if(!doc.length) result += "资源或资源组不存在！";
+
+                                    if(result.length === 0) {
+                                        doc = await ac.RuleProRes.update({_id : req.body._id}
+                                            , {ruleprores : req.body.ruleprores, ruleproresType : req.body.ruleproresType
+                                                ,proRes : req.body.proRes, procResType : req.body.procResType
+                                                ,operation : req.body.operation});
+                                        console.log(doc); //{ n: 0, nModified: 0, ok: 1 }
+                                        if (doc.nModified != 0) {
+                                            state = "ok";
+                                            result = doc;
+                                        } else {
+                                            state = "error";
+                                            result = "修改ruleprores出错，请重试!";
+                                        }
+                                    }
+
+
+                                }else{
+                                    state = "error";
+                                    result = "该ruleprores已存在，请修改后重试!";
+                                }
+                            }else{
+                                state = "error";
+                                result = "该ruleprores在使用中，不能修改!";
+                            }
+
+                            res.set("Content-Type", "application/json");
+                            res.send({state : state, result : result});
+                        })();
+
+                        break;
+                    case "DELETE" :
+                        console.log("delete ruleprores");
+                        console.log(req.body);
+                        (async function(){
+                            let result, state, doc=[];
+                            if(!module.exports.isUsed(req.body, "ruleprores")){
+                                doc = await ac.RuleProRes.remove({_id : req.body._id});
+                                console.log(doc); //{ n: 0, nModified: 0, ok: 1 }
+                                if (doc.n != 0) {
+                                    state = "ok";
+                                    result = doc;
+                                } else {
+                                    state = "error";
+                                    result = "删除ruleprores出错，请重试!";
+                                }
+
+                            }else{
+                                state = "error";
+                                result = "ruleprores在使用中，不能删除!";
                             }
 
                             res.set("Content-Type", "application/json");
@@ -811,7 +954,7 @@ module.exports = {
                                         if(!doc.length) result = "规则不存在.";
                                         break;
                                     case "group" :
-                                        doc = await ac.Rule.find({ruleType : req.body.rule});
+                                        doc = await ac.Rule.find({ruleGroup : req.body.rule});
                                         if(!doc.length) result = "规则组不存在.";
                                         break;
                                 }
@@ -882,7 +1025,7 @@ module.exports = {
                                             if(!doc.length) result = "规则不存在.";
                                             break;
                                         case "group" :
-                                            doc = await ac.Rule.find({ruleType : req.body.rule});
+                                            doc = await ac.Rule.find({ruleGroup : req.body.rule});
                                             if(!doc.length) result = "规则组不存在.";
                                             break;
                                     }
@@ -1054,65 +1197,71 @@ module.exports = {
             case "overview" :
 
                 console.log("case overview");
+                console.log(req.body);
 
                 switch(req.method){
                     case "GET" :
-                        console.log("get access");
+                        console.log("get overview");
                         //1, check if the user is valid, user for frontend, operator for backend.
                         //      there has possibility name are same for user, operator, usergroup, role, role group.
                         //2, which group is the user belong to? userGroup = []
                         //3, which role is the user  belong to? role = [];
                         //4, which roleGroup is the user belong to? roleGroup = []
-                        //5, which access is the user associated? accessId = [{id, "whitelist or blacklist"}];
-                        //6, which ruleType is the access consist of? ruleType =[]
+                        //5, which access is the user associated? access = [{id, "whitelist or blacklist"}];
+                        //6, which ruleGroup is the access consist of? ruleGroup =[]
                         //7, which rule is the access consist of?  rule = []
                         //8, which resourceType can the access visit? resourceType = []
                         //9, which resource can the access visit? resource = [{resousceId, operation，whitelist or blacklist}]
 
                         (async function () {
                             let result="", state;
-                            let doc, userGroup, role, roleGroup;
+                            let doc, userGroup, role, roleGroup, access, rule, ruleGroup, resource, resourceGroup;
+                            let items =[];
 
                             //step 1
-                            if (req.body.user == "operator"){
-                                doc = await ac.operator.find({operator : req.body.user});
+                            if (req.query.userType == "operator"){
+                                doc = await ac.Operator.find({operator : req.query.user});
                             }else
-                                doc = await ac.userUser.find({username : req.body.user});
+                                doc = await userUser.find({username : req.query.user});
+
 
                             if(doc.length){
                                 userGroup = [];
 
                                 //step 2
-                                if(req.body.user == "operator"){
-                                    doc = await ac.OperatorGroup.find({operator : req.body.user});
+                                if(req.query.userType == "operator"){
+                                    doc = await ac.OperatorGroup.find({operator : req.query.user});
                                     if (doc.length){
                                         for(let i = 0, length = doc.length; i < length; i++){
+                                            items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
                                             userGroup.push(doc[i].operatorGroup);
                                         }
                                     }
                                 }else{
-                                    doc = await ac.userUser.find({username : req.body.user});
+                                    doc = await userUser.find({username : req.query.user});
                                     if (doc.length){
                                         for(let i = 0, length = doc.length; i < length; i++){
+                                            items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
                                             userGroup.push(doc[i].group);
                                         }
                                     }
                                 }
 
+
                                 //step 3 and 4
-                                if(req.body.user === "operator") {
-                                    doc = await ac.userRole.find({
+                                if(req.query.userType === "operator") {
+                                    doc = await ac.UserRole.find({
                                         $or: [{
                                             user: {$in: userGroup}
-                                            , userType: "operatorgroup"
-                                        }, {user: req.body.user, userType: "operator"}]
+                                            , roleType: "operatorgroup"
+                                        }, {user: req.query.user, roleType: "operator"}]
                                     });
                                 }else{
-                                    doc = await ac.userRole.find({
+                                    doc = await ac.UserRole.find({
                                         $or: [{
                                             user: {$in: userGroup}
-                                            , userType: "operatorgroup"
-                                        }, {user: req.body.user, userType: "user"}]
+                                            , roleType: "usergroup"
+                                        }, {user: req.query.user, roleType: "user"}]
                                     });
                                 }
 
@@ -1121,19 +1270,73 @@ module.exports = {
                                     for (let i = 0, length = doc.length; i < length; i ++){
                                         if (doc[i].roleType === "role"){
                                             role.push(doc[i].role);
+                                            let d = await ac.Role.find({role : doc[i].role});
+                                            if (d.length){
+                                                for(let i = 0, length =d.length; i < length; i++ ){
+                                                    if(d[i].roleGroup !== ""){
+                                                        roleGroup.push(d[i].roleGroup);
+                                                    }
+                                                }
+                                            }
                                         }else
                                             roleGroup.push(doc[i].role)
                                     }
                                 }
 
                                 //step 5, 6, 7
+                                doc = await ac.Access.find({$or : [{ role : {$in : role}, roleType : "role"}
+                                                                , {role : {$in : roleGroup}, roleType : "rolegroup"}
+                                                                , {role : {$in : userGroup}, roleType : req.query.userType+"group"}
+                                                                , {role : req.query.user, roleType : req.query.userType}
+                                    ]});
+                                if(doc.length){
+                                    access = [], rule = [], ruleGroup = [];
+                                    for(let i = 0, length = doc.length; i < length; i++){
+                                        // access.push({accessId : doc[i]._id, whitelist : doc[i].whitelist});
+                                        if(doc[i].ruleType === "rule"){
+                                            rule.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                                            let d = await ac.Rule.find({rule : doc[i].rule});
+                                            if (d.length){
+                                                for(let j = 0, length =d.length; j < length; j++ ){
+                                                    if(d[j].ruleGroup !== ""){
+                                                        ruleGroup.push({rule : d[j].rule, whitelist : doc[i].whitelist});
+                                                    }
+                                                }
+                                            }
+                                        }else
+                                            ruleGroup.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                                    }
+                                }
 
+                                //step 8, 9
+                                resource = [], resourceGroup =[];
+                                for(let i = 0, length = rule.length; i < length; i++){
+                                    let doc= await ac.RuleProRes.find({rule : rule.rule[i].rule, ruleGroup : ""});
+                                    if(doc[0].proResType === "resource"){
+                                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
+                                    }else if(doc[0].proResType === "resourcegroup")
+                                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
 
+                                }
 
+                                for(let i = 0, length = ruleGroup.length; i < length; i++){
+                                    let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleGroup : "rulegroup"});
+                                    if(doc[0].proResType === "resource"){
+                                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
+                                    }else if(doc[0].proResType === "resourcegroup")
+                                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
 
+                                }
 
+                                for(let i = 0, length =resourceGroup.length; i < length; i++){
+                                    let doc = await ac.Resource.find({resourceGroup : resourceGroup[i].proRes});
+                                    for(let j=0, length = doc.length; j < length; j++){
+                                        resource.push({proRes : doc[j].resource, operation : resourceGroup[i].operation, whitelist : resourceGroup[i].whitelist });
+                                    }
+                                }
 
-
+                                state = "ok";
+                                result = resource;
 
 
                             }else{
@@ -1170,6 +1373,9 @@ module.exports = {
 
                 used = 0;
                 break;
+            case "rule":
+                //should check access, ruleprores before delete
+                used = 0;
             case "role":
                 //should check access, userrole before delete
                 used = 0;
