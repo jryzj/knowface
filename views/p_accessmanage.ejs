@@ -7,10 +7,13 @@
         <a class="nav-item nav-link" id="p_accessmanage_nav-role-tab" data-toggle="tab" href="#p_accessmanage_nav-role">角色分组表</a>
         <a class="nav-item nav-link" id="p_accessmanage_nav-resource-tab" data-toggle="tab" href="#p_accessmanage_nav-resource">资源分组表</a>
         <a class="nav-item nav-link" id="p_accessmanage_nav-process-tab" data-toggle="tab" href="#p_accessmanage_nav-process">流程表</a>
-        <a class="nav-item nav-link" id="p_accessmanage_nav-rule-tab" data-toggle="tab" href="#p_accessmanage_nav-rule">权限分组表</a>
-        <a class="nav-item nav-link" id="p_accessmanage_nav-userrole-tab" data-toggle="tab" href="#p_accessmanage_nav-userrole">用户角色表</a>
-        <a class="nav-item nav-link" id="p_accessmanage_nav-access-tab" data-toggle="tab" href="#p_accessmanage_nav-access">用户权限表</a>
+        <a class="nav-item nav-link" id="p_accessmanage_nav-rule-tab" data-toggle="tab" href="#p_accessmanage_nav-rule">规则分组表</a>
+        <a class="nav-item nav-link" id="p_accessmanage_nav-ruleprores-tab" data-toggle="tab" href="#p_accessmanage_nav-ruleprores">规则资源表</a>
+        <a class="nav-item nav-link" id="p_accessmanage_nav-userrole-tab" data-toggle="tab" href="#p_accessmanage_nav-userrole">用户操作员角色表</a>
+        <a class="nav-item nav-link" id="p_accessmanage_nav-access-tab" data-toggle="tab" href="#p_accessmanage_nav-access">权限表</a>
         <a class="nav-item nav-link" id="p_accessmanage_nav-group-tab" data-toggle="tab" href="#p_accessmanage_nav-group">分组定义表</a>
+        <a class="nav-item nav-link" id="p_accessmanage_nav-overview-tab" data-toggle="tab" href="#p_accessmanage_nav-overview">权限概览</a>
+
     </div>
 </nav>
 
@@ -31,15 +34,21 @@
         </div>
 
     <div class="tab-pane fade" id="p_accessmanage_nav-process">...process</div>
+
     <div class="tab-pane fade" id="p_accessmanage_nav-rule">
         <div id="p_accessmanage_table_rule"></div>
-        </div>
+    </div>
+
+    <div class="tab-pane fade" id="p_accessmanage_nav-ruleprores">
+        <div id="p_accessmanage_table_ruleprores"></div>
+    </div>
+
     <div class="tab-pane fade odd" id="p_accessmanage_nav-userrole">
         <div id="p_accessmanage_table_userrole"></div>
         </div>
     <div class="tab-pane fade odd" id="p_accessmanage_nav-access">
-        <div id="p_accessmanage_table_userrole"></div>
-        ...access</div>
+        <div id="p_accessmanage_table_access"></div>
+        </div>
     <div class="tab-pane fade" id="p_accessmanage_nav-group">
 <!--        <div>
             <table id="p_accessmanage_table_id_group" class="table stripe row-border hover compact" cellspacing="0" width="100%">
@@ -54,10 +63,26 @@
                 </tbody>
             </table>
         </div>-->
-
-
         <div id="p_accessmanage_table_group"></div>
     </div>
+
+    <div class="tab-pane fade odd" id="p_accessmanage_nav-overview">
+        <div class="row justify-content-center" id="p_accessmanage_div_overview">
+            <div class="d-flex col-md-6 justify-content-center align-items-center rounded">
+                <div class="input-group">
+                <input class="form-control" id="p_accessmanage_input_overview_user" placeholder="请输入用户名" type="text">
+                    <select class="form-control" id="p_accessmanage_input_overview_usertype" placeholder="用户还是管理员">
+                        <option value=""></option>
+                        <option value="user">前端用户</option>
+                        <option value="operator">后端管理员</option>
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" id="p_accessmanage_btn_overview">查询用户权限</button></div>
+                </div>
+            </div>
+        </div>
+        <div id="p_accessmanage_table_overview"></div>
+        ...overview</div>
 </div>
 
 
