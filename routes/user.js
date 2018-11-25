@@ -11,7 +11,7 @@ user.get("/p_updatedoc",u_controller.p_updateDoc);
 user.get("/p_usermsg", u_controller.p_userMsg);
 user.get("/p_usermsg/getmsg/:id", u_controller.p_userMsg_getMsg);
 user.get("/p_userinfo",u_controller.p_userInfo);
-user.get("/p_updateuserinfo",u_controller.p_updateUserInfo);
+user.post("/p_updateuserinfo",u_controller.p_updateUserInfo);
 user.get("/p_logout",u_controller.p_logout);
 user.post("/p_createdoc/save",u_controller.p_createDoc_save);
 user.get("/p_createdoc/exit",u_controller.p_createDoc_exit);

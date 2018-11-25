@@ -45,4 +45,10 @@ case "/user/p_usermsg" :%>
 <%break;
 case "/user/p_userinfo" :%>
 <%- include("p_userinfo")%>
+<%break;
+case "/admin/p_accessmanage" : %>
+<%- include("p_accessmanage") %>
+<%break;
+case "/admin/" : %>
+<%- include("p_admin") %>
 <%break;}%>

@@ -8,9 +8,9 @@ const userUser = Dao.User;
 module.exports = {
     admin : function (req, res) {
         console.log("backend/admin");
-        console.log(req.path);
+        console.log(req.baseUrl,"-", req.path);
         res.set("Content-Type","text/html");
-        res.render("frame.ejs",{"urlpath":{"path":req.baseUrl+req.path}});
+        res.render("frame.ejs",{"urlpath":req.baseUrl+req.path});
     },
     userManage : function (req, res) {
         console.log("backend/admin/userManage");
@@ -1253,8 +1253,8 @@ module.exports = {
                                     doc = await ac.UserRole.find({
                                         $or: [{
                                             user: {$in: userGroup}
-                                            , roleType: "operatorgroup"
-                                        }, {user: req.query.user, roleType: "operator"}]
+                                            , userType: "operatorgroup"
+                                        }, {user: req.query.user, userType: "operator"}]
                                     });
                                 }else{
                                     doc = await ac.UserRole.find({
@@ -1284,13 +1284,13 @@ module.exports = {
                                 }
 
                                 //step 5, 6, 7
+                                access = [], rule = [], ruleGroup = [];
                                 doc = await ac.Access.find({$or : [{ role : {$in : role}, roleType : "role"}
                                                                 , {role : {$in : roleGroup}, roleType : "rolegroup"}
                                                                 , {role : {$in : userGroup}, roleType : req.query.userType+"group"}
                                                                 , {role : req.query.user, roleType : req.query.userType}
                                     ]});
                                 if(doc.length){
-                                    access = [], rule = [], ruleGroup = [];
                                     for(let i = 0, length = doc.length; i < length; i++){
                                         // access.push({accessId : doc[i]._id, whitelist : doc[i].whitelist});
                                         if(doc[i].ruleType === "rule"){
@@ -1311,19 +1311,19 @@ module.exports = {
                                 //step 8, 9
                                 resource = [], resourceGroup =[];
                                 for(let i = 0, length = rule.length; i < length; i++){
-                                    let doc= await ac.RuleProRes.find({rule : rule.rule[i].rule, ruleGroup : ""});
-                                    if(doc[0].proResType === "resource"){
+                                    let doc= await ac.RuleProRes.find({rule : rule[i].rule, ruleType : "rule"});
+                                    if(doc[0] && doc[0].proResType === "resource"){
                                         resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
-                                    }else if(doc[0].proResType === "resourcegroup")
+                                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
                                         resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
 
                                 }
 
                                 for(let i = 0, length = ruleGroup.length; i < length; i++){
-                                    let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleGroup : "rulegroup"});
-                                    if(doc[0].proResType === "resource"){
+                                    let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleType : "rulegroup"});
+                                    if(doc[0] && doc[0].proResType === "resource"){
                                         resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
-                                    }else if(doc[0].proResType === "resourcegroup")
+                                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
                                         resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
 
                                 }
@@ -1355,6 +1355,12 @@ module.exports = {
                 break;
         }
 
+    },
+    login : function(req, res){
+        console.log("admin.login");
+        console.log(req);
+        res.set("Content-Type","text/html");
+        res.end("login message received!")
     },
     logout : function (req, res) {
         console.log("backend/admin/logout");

@@ -8,6 +8,8 @@ db.once("open", function(){
 
 db.on('error', console.error.bind(console, 'connection error:'));
 
+exports.db = db;
+
 let generalMethods = {
     toCreate : function (docs, callback) {
         this.create(docs, function(err, docs){
@@ -90,11 +92,11 @@ const userSchema = mongoose.Schema({
     userDir : String,
     createTime : {type : Date, default : Date.now},
     updateTime : Date,
-    group : String,
+    group : {type : String, default : "member"},
     isDeleted : {type : Boolean, default : false},
     docQty : {type : Number, default : 0},
     docIds : {type : Array, default : []},
-    isLogin : {type : Boolean, default : false}
+    isLogin : {type : Boolean, default : false},
 },{ timestamps: true });
 
 /*userSchema.statics.insert = function (docs, callback) {
@@ -309,7 +311,7 @@ const globalSchema = mongoose.Schema({ //总体，统计数据
     userQty : {type : Number, default : 0},
     docQty : {type : Number, default : 0},
     photoQty : {type : Number, default : 0},
-    createTime : {type : Date, default : Date.now},
+    createTime : {type : Date, default : Date.now}
 });
 
 globalSchema.statics.toCreate = generalMethods.toCreate;

@@ -509,7 +509,7 @@ module.exports = {
                     content = content.replace(/<\/?[^>]*>/g, "");
                     content = content.replace(/\s*/g, "");
                     if (content.length > textLength){
-                        content.length = 30;
+                        content = content.slice(30) +"...";
                     }
                     msgs[i].content = content;
                 }
@@ -576,6 +576,62 @@ module.exports = {
     },
     p_updateUserInfo : function (req, res) {
         console.log("p_updateUserInfo");
+        let username = req.session.username;
+        if(username){
+            co(function *() {
+                let update = {};
+                let form = new formidable.IncomingForm();
+                form.uploadDir = "./tmp";
+                form.keepExtensions = true;
+                let result = yield function (cb) { //reslut[0]是fields, reslut[0]是files
+                    form.parse(req, cb);
+                };
+                console.log(result);
+                //更新avator
+                if (result[1].hasOwnProperty("avator")) {
+                    //查询原来的avator文件名
+                    let doc = yield function (cb) {
+                        userUser.toFind({username: username}, cb)
+                    };
+                    //删除原来的avator
+                    yield function (cb) {
+                        fs.unlink("./data/users/" + username + "/" + doc.avator, cb);
+                    }
+                    //把新avator移动到用户目录
+                    let avator =  username + "_avator." + result[1].avator.path.split(".")[1];
+                    yield function (cb) {
+                        let avatorPath =  "./data/users/" + username + "/" + avator;
+                        fs.rename(result[1].avator.path, avatorPath, cb);
+                    }
+                    update.avator = avator;
+                }
+
+                if (JSON.stringify(result[0]) != "{}") {
+                //更新各个注册字段
+                    if (result[0].password) update.password = funcs.enCrypto(result[0].password);
+                    if (result[0].realname) update.name = result[0].realname;
+                    if (result[0].email) update.email = result[0].email;
+                    if (result[0].phone) update.phone = result[0].phone;
+                    }
+
+                if(JSON.stringify(update) != "{}") {
+                    yield function (cb) {
+                        userUser.toUpdate({username: username}, update, cb);
+                    }
+                }
+
+                res.send("用户信息更新成功！")
+            }).catch(function(err){
+                res.send("修改出现错误，请重试！");
+                if (err) throw err;
+            });
+
+
+        }else{
+            res.redirect("/");
+        }
+
+
     },
     p_logout : function (req, res) {
         console.log("p_logout");

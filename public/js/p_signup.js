@@ -6,8 +6,12 @@ $(function(){
         let reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload =  function(e){
-            console.log(e);
-            $("#p_signup_img_avator").get(0).src = e.target.result;
+            if (file.size <= 512000){
+                $("#p_signup_img_avator").get(0).src = e.target.result;
+            }else{
+                $("#p_signup_modal_errormsg").text("请选择图片小于500k!");
+                $("#p_signup_modal_error").modal("show");
+            }
         }
     });
 
@@ -19,6 +23,7 @@ $(function(){
         if (!reg.test($("#p_signup_input_username").val())){
             message += `&bull;用户名不符合规则，必须是8到32个字符组成，字符为英文字母大小写、数字、下划线、中划线。<br>`;
         }
+
         reg = /^.*(?=.{8,})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$/; //密码强度正则，最少8位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符
 
         if (!reg.test($("#p_signup_input_password1").val())){

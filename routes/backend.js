@@ -12,6 +12,12 @@ backend.get("/p_updatedoc", a_controller.updateDoc);
 backend.get("/p_matchmanage", a_controller.matchManage);
 backend.get("/p_msgmanage", a_controller.msgManage);
 backend.get("/p_sendmsg", a_controller.sendMsg);
-backend.get("/logout", a_controller.logout);
+backend.get("/p_accessmanage", a_controller.accessManage);
+backend.get("/access/:resource", a_controller.access); //query
+backend.post("/access/:resource", a_controller.access); //update_insert
+backend.delete("/access/:resource", a_controller.access); //update_delete
+backend.put("/access/:resource", a_controller.access); //update_delete
+backend.post("/login", a_controller.login);
+backend.post("/logout", a_controller.logout);
 
 module.exports = backend;
