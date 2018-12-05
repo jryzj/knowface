@@ -10,6 +10,10 @@ $(function(){
             data : {operator : operator, password : password},
             success : function(result){
             console.log(result);
+            if(result === "ok"){
+                window.location.href = "/admin/p_operatorinfo";
+            }else
+                alert (result);
         },
             });
     })

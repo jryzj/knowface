@@ -612,7 +612,7 @@ $(function () {
                     {name: "dynamic", type: "select", title: "动态与否", editing: false
                         , items : [{name : "", value : ""}, {name : "否", value : false}, {name : "是", value : true}], textField : "name", valueField : "value"
                         ,validate: "required"},
-                    {name: "containerId", type: "text", title: "容器内容Id", editing: false},
+                    {name: "container", type: "text", title: "容器资源名", editing: false},
                     {name: "resourceGroup", type: "select", title: "分组名", items : [{name : ""}],  textField : "name", valueField : "name"
                         // , validate: "required"
                         /*,

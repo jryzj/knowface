@@ -40,9 +40,24 @@ module.exports = {
     },
     accessManage : function(req, res){
         console.log("backend/admin/accessManage");
-        res.set("Content-Type","text/html");
-        console.log(req.baseUrl,req.path);
-        res.render("frame.ejs",{"urlpath": req.baseUrl + req.path});
+        if(req.session.operator) {
+            (async function(){
+            let access = await module.exports.accessRefine("/admin/p_accessmanage", req.session.operator, "operator");
+            console.log(access);
+            if (access.result.url) {
+                access.proResList.urlpath = req.baseUrl + req.path;
+                access.proResList.operator = req.session.operator;
+                res.set("Content-Type", "text/html");
+                console.log(req.baseUrl, req.path);
+                res.render("frame.ejs", access.proResList);
+            }else{
+                res.set("Content-Type", "text/html");
+                res.send('page access denied!');
+            }})();
+        }else {
+            res.set("Content-Type", "text/html");
+            res.end("login, pls!");
+        }
     },
     access : function(req, res){
         console.log("backend/admin/access");
@@ -1213,140 +1228,148 @@ module.exports = {
                         //8, which resourceType can the access visit? resourceType = []
                         //9, which resource can the access visit? resource = [{resousceId, operation，whitelist or blacklist}]
 
-                        (async function () {
-                            let result="", state;
-                            let doc, userGroup, role, roleGroup, access, rule, ruleGroup, resource, resourceGroup;
-                            let items =[];
+                        // (async function () {
+                        //                         //     let result="", state;
+                        //                         //     let doc, userGroup, role, roleGroup, access, rule, ruleGroup, resource, resourceGroup;
+                        //                         //     let items =[];
+                        //                         //
+                        //                         //     //step 1
+                        //                         //     if (req.query.userType == "operator"){
+                        //                         //         doc = await ac.Operator.find({operator : req.query.user});
+                        //                         //     }else
+                        //                         //         doc = await userUser.find({username : req.query.user});
+                        //                         //
+                        //                         //
+                        //                         //     if(doc.length){
+                        //                         //         userGroup = [];
+                        //                         //
+                        //                         //         //step 2
+                        //                         //         if(req.query.userType == "operator"){
+                        //                         //             doc = await ac.OperatorGroup.find({operator : req.query.user});
+                        //                         //             if (doc.length){
+                        //                         //                 for(let i = 0, length = doc.length; i < length; i++){
+                        //                         //                     items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
+                        //                         //                     userGroup.push(doc[i].operatorGroup);
+                        //                         //                 }
+                        //                         //             }
+                        //                         //         }else{
+                        //                         //             doc = await userUser.find({username : req.query.user});
+                        //                         //             if (doc.length){
+                        //                         //                 for(let i = 0, length = doc.length; i < length; i++){
+                        //                         //                     items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
+                        //                         //                     userGroup.push(doc[i].group);
+                        //                         //                 }
+                        //                         //             }
+                        //                         //         }
+                        //                         //
+                        //                         //
+                        //                         //         //step 3 and 4
+                        //                         //         if(req.query.userType === "operator") {
+                        //                         //             doc = await ac.UserRole.find({
+                        //                         //                 $or: [{
+                        //                         //                     user: {$in: userGroup}
+                        //                         //                     , userType: "operatorgroup"
+                        //                         //                 }, {user: req.query.user, userType: "operator"}]
+                        //                         //             });
+                        //                         //         }else{
+                        //                         //             doc = await ac.UserRole.find({
+                        //                         //                 $or: [{
+                        //                         //                     user: {$in: userGroup}
+                        //                         //                     , roleType: "usergroup"
+                        //                         //                 }, {user: req.query.user, roleType: "user"}]
+                        //                         //             });
+                        //                         //         }
+                        //                         //
+                        //                         //             if(doc.length){
+                        //                         //             role = [], roleGroup =[];
+                        //                         //             for (let i = 0, length = doc.length; i < length; i ++){
+                        //                         //                 if (doc[i].roleType === "role"){
+                        //                         //                     role.push(doc[i].role);
+                        //                         //                     let d = await ac.Role.find({role : doc[i].role});
+                        //                         //                     if (d.length){
+                        //                         //                         for(let i = 0, length =d.length; i < length; i++ ){
+                        //                         //                             if(d[i].roleGroup !== ""){
+                        //                         //                                 roleGroup.push(d[i].roleGroup);
+                        //                         //                             }
+                        //                         //                         }
+                        //                         //                     }
+                        //                         //                 }else
+                        //                         //                     roleGroup.push(doc[i].role)
+                        //                         //             }
+                        //                         //         }
+                        //                         //
+                        //                         //         //step 5, 6, 7
+                        //                         //         access = [], rule = [], ruleGroup = [];
+                        //                         //         doc = await ac.Access.find({$or : [{ role : {$in : role}, roleType : "role"}
+                        //                         //                                         , {role : {$in : roleGroup}, roleType : "rolegroup"}
+                        //                         //                                         , {role : {$in : userGroup}, roleType : req.query.userType+"group"}
+                        //                         //                                         , {role : req.query.user, roleType : req.query.userType}
+                        //                         //             ]});
+                        //                         //         if(doc.length){
+                        //                         //             for(let i = 0, length = doc.length; i < length; i++){
+                        //                         //                 // access.push({accessId : doc[i]._id, whitelist : doc[i].whitelist});
+                        //                         //                 if(doc[i].ruleType === "rule"){
+                        //                         //                     rule.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                        //                         //                     let d = await ac.Rule.find({rule : doc[i].rule});
+                        //                         //                     if (d.length){
+                        //                         //                         for(let j = 0, length =d.length; j < length; j++ ){
+                        //                         //                             if(d[j].ruleGroup !== ""){
+                        //                         //                                 ruleGroup.push({rule : d[j].rule, whitelist : doc[i].whitelist});
+                        //                         //                             }
+                        //                         //                         }
+                        //                         //                     }
+                        //                         //                 }else
+                        //                         //                     ruleGroup.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                        //                         //             }
+                        //                         //         }
+                        //                         //
+                        //                         //         //step 8, 9
+                        //                         //         resource = [], resourceGroup =[];
+                        //                         //         for(let i = 0, length = rule.length; i < length; i++){
+                        //                         //             let doc= await ac.RuleProRes.find({rule : rule[i].rule, ruleType : "rule"});
+                        //                         //             if(doc[0] && doc[0].proResType === "resource"){
+                        //                         //                 resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
+                        //                         //             }else if(doc[0] && doc[0].proResType === "resourcegroup")
+                        //                         //                 resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
+                        //                         //
+                        //                         //         }
+                        //                         //
+                        //                         //         for(let i = 0, length = ruleGroup.length; i < length; i++){
+                        //                         //             let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleType : "rulegroup"});
+                        //                         //             if(doc[0] && doc[0].proResType === "resource"){
+                        //                         //                 resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
+                        //                         //             }else if(doc[0] && doc[0].proResType === "resourcegroup")
+                        //                         //                 resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
+                        //                         //
+                        //                         //         }
+                        //                         //
+                        //                         //         for(let i = 0, length =resourceGroup.length; i < length; i++){
+                        //                         //             let doc = await ac.Resource.find({resourceGroup : resourceGroup[i].proRes});
+                        //                         //             for(let j=0, length = doc.length; j < length; j++){
+                        //                         //                 resource.push({proRes : doc[j].resource, operation : resourceGroup[i].operation, whitelist : resourceGroup[i].whitelist });
+                        //                         //             }
+                        //                         //         }
+                        //                         //
+                        //                         //         state = "ok";
+                        //                         //         result = resource;
+                        //                         //
+                        //                         //
+                        //                         //     }else{
+                        //                         //         state = "error";
+                        //                         //         result = "用户名不存在!";
+                        //                         //     }
+                        //                         //
+                        //                         //     res.set("Content-Type", "application/json");
+                        //                         //     res.send({state: state, result: result});
+                        //                         // })();
 
-                            //step 1
-                            if (req.query.userType == "operator"){
-                                doc = await ac.Operator.find({operator : req.query.user});
-                            }else
-                                doc = await userUser.find({username : req.query.user});
+                        (async function(){
+                            let result = await module.exports.checkAccess(req.query.user, req.query.userType)
 
+                        res.set("Content-Type", "application/json");
+                        res.send(result);
 
-                            if(doc.length){
-                                userGroup = [];
-
-                                //step 2
-                                if(req.query.userType == "operator"){
-                                    doc = await ac.OperatorGroup.find({operator : req.query.user});
-                                    if (doc.length){
-                                        for(let i = 0, length = doc.length; i < length; i++){
-                                            items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
-                                            userGroup.push(doc[i].operatorGroup);
-                                        }
-                                    }
-                                }else{
-                                    doc = await userUser.find({username : req.query.user});
-                                    if (doc.length){
-                                        for(let i = 0, length = doc.length; i < length; i++){
-                                            items.push({user : req.query.user, userGroup : doc[i].operatorGroup});
-                                            userGroup.push(doc[i].group);
-                                        }
-                                    }
-                                }
-
-
-                                //step 3 and 4
-                                if(req.query.userType === "operator") {
-                                    doc = await ac.UserRole.find({
-                                        $or: [{
-                                            user: {$in: userGroup}
-                                            , userType: "operatorgroup"
-                                        }, {user: req.query.user, userType: "operator"}]
-                                    });
-                                }else{
-                                    doc = await ac.UserRole.find({
-                                        $or: [{
-                                            user: {$in: userGroup}
-                                            , roleType: "usergroup"
-                                        }, {user: req.query.user, roleType: "user"}]
-                                    });
-                                }
-
-                                    if(doc.length){
-                                    role = [], roleGroup =[];
-                                    for (let i = 0, length = doc.length; i < length; i ++){
-                                        if (doc[i].roleType === "role"){
-                                            role.push(doc[i].role);
-                                            let d = await ac.Role.find({role : doc[i].role});
-                                            if (d.length){
-                                                for(let i = 0, length =d.length; i < length; i++ ){
-                                                    if(d[i].roleGroup !== ""){
-                                                        roleGroup.push(d[i].roleGroup);
-                                                    }
-                                                }
-                                            }
-                                        }else
-                                            roleGroup.push(doc[i].role)
-                                    }
-                                }
-
-                                //step 5, 6, 7
-                                access = [], rule = [], ruleGroup = [];
-                                doc = await ac.Access.find({$or : [{ role : {$in : role}, roleType : "role"}
-                                                                , {role : {$in : roleGroup}, roleType : "rolegroup"}
-                                                                , {role : {$in : userGroup}, roleType : req.query.userType+"group"}
-                                                                , {role : req.query.user, roleType : req.query.userType}
-                                    ]});
-                                if(doc.length){
-                                    for(let i = 0, length = doc.length; i < length; i++){
-                                        // access.push({accessId : doc[i]._id, whitelist : doc[i].whitelist});
-                                        if(doc[i].ruleType === "rule"){
-                                            rule.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
-                                            let d = await ac.Rule.find({rule : doc[i].rule});
-                                            if (d.length){
-                                                for(let j = 0, length =d.length; j < length; j++ ){
-                                                    if(d[j].ruleGroup !== ""){
-                                                        ruleGroup.push({rule : d[j].rule, whitelist : doc[i].whitelist});
-                                                    }
-                                                }
-                                            }
-                                        }else
-                                            ruleGroup.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
-                                    }
-                                }
-
-                                //step 8, 9
-                                resource = [], resourceGroup =[];
-                                for(let i = 0, length = rule.length; i < length; i++){
-                                    let doc= await ac.RuleProRes.find({rule : rule[i].rule, ruleType : "rule"});
-                                    if(doc[0] && doc[0].proResType === "resource"){
-                                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
-                                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
-                                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
-
-                                }
-
-                                for(let i = 0, length = ruleGroup.length; i < length; i++){
-                                    let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleType : "rulegroup"});
-                                    if(doc[0] && doc[0].proResType === "resource"){
-                                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
-                                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
-                                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
-
-                                }
-
-                                for(let i = 0, length =resourceGroup.length; i < length; i++){
-                                    let doc = await ac.Resource.find({resourceGroup : resourceGroup[i].proRes});
-                                    for(let j=0, length = doc.length; j < length; j++){
-                                        resource.push({proRes : doc[j].resource, operation : resourceGroup[i].operation, whitelist : resourceGroup[i].whitelist });
-                                    }
-                                }
-
-                                state = "ok";
-                                result = resource;
-
-
-                            }else{
-                                state = "error";
-                                result = "用户名不存在!";
-                            }
-
-                            res.set("Content-Type", "application/json");
-                            res.send({state: state, result: result});
-                        })();
+                    })();
 
                         break;
 
@@ -1358,9 +1381,26 @@ module.exports = {
     },
     login : function(req, res){
         console.log("admin.login");
-        console.log(req);
-        res.set("Content-Type","text/html");
-        res.end("login message received!")
+        console.log(req.body);
+        //1、to match operator and password
+        //2、set session
+        (async function(){
+            let result="";
+            //1、to match operator and password
+            let pwd =  funcs.enCrypto(req.body.password);
+            let doc = await ac.Operator.find({operator : req.body.operator, password : pwd});
+            if(doc.length > 0){
+                //account and password matched
+                //2、set session
+                result = "ok";
+                req.session.operator = req.body.operator;
+            }else
+                result = "account and password are not match!";
+
+            res.set("Content-Type","text/html");
+            res.end(result);
+        })();
+
     },
     logout : function (req, res) {
         console.log("backend/admin/logout");
@@ -1396,5 +1436,240 @@ module.exports = {
         }
 
         return used;
+    },
+    checkAccess : async function(user, userType){
+        console.log("backend/admin/checkAccess");
+            let result="", state;
+            let doc, userGroup, role, roleGroup, access, rule, ruleGroup, resource, resourceGroup;
+            let items =[];
+
+        //1, check if the user is valid, user for frontend, operator for backend.
+        //      there has possibility name are same for user, operator, usergroup, role, role group.
+        //2, which group is the user belong to? userGroup = []
+        //3, which role is the user  belong to? role = [];
+        //4, which roleGroup is the user belong to? roleGroup = []
+        //5, which access is the user associated? access = [{id, "whitelist or blacklist"}];
+        //6, which ruleGroup is the access consist of? ruleGroup =[]
+        //7, which rule is the access consist of?  rule = []
+        //8, which resourceType can the access visit? resourceType = []
+        //9, which resource can the access visit? resource = [{resousceId, operation，whitelist or blacklist}]
+        //10, insert container in resource.
+
+        //step 1
+            if (userType == "operator"){
+                doc = await ac.Operator.find({operator : user});
+            }else
+                doc = await userUser.find({username : user});
+
+
+            if(doc.length){
+                userGroup = [];
+
+                //step 2
+                if(userType == "operator"){
+                    doc = await ac.OperatorGroup.find({operator : user});
+                    if (doc.length){
+                        for(let i = 0, length = doc.length; i < length; i++){
+                            items.push({user : user, userGroup : doc[i].operatorGroup});
+                            userGroup.push(doc[i].operatorGroup);
+                        }
+                    }
+                }else{
+                    doc = await userUser.find({username : user});
+                    if (doc.length){
+                        for(let i = 0, length = doc.length; i < length; i++){
+                            items.push({user : user, userGroup : doc[i].operatorGroup});
+                            userGroup.push(doc[i].group);
+                        }
+                    }
+                }
+
+
+                //step 3 and 4
+                if(userType === "operator") {
+                    doc = await ac.UserRole.find({
+                        $or: [{
+                            user: {$in: userGroup}
+                            , userType: "operatorgroup"
+                        }, {user: user, userType: "operator"}]
+                    });
+                }else{
+                    doc = await ac.UserRole.find({
+                        $or: [{
+                            user: {$in: userGroup}
+                            , roleType: "usergroup"
+                        }, {user: user, roleType: "user"}]
+                    });
+                }
+
+                if(doc.length){
+                    role = [], roleGroup =[];
+                    for (let i = 0, length = doc.length; i < length; i ++){
+                        if (doc[i].roleType === "role"){
+                            role.push(doc[i].role);
+                            let d = await ac.Role.find({role : doc[i].role});
+                            if (d.length){
+                                for(let i = 0, length =d.length; i < length; i++ ){
+                                    if(d[i].roleGroup !== ""){
+                                        roleGroup.push(d[i].roleGroup);
+                                    }
+                                }
+                            }
+                        }else
+                            roleGroup.push(doc[i].role)
+                    }
+                }
+
+                //step 5, 6, 7
+                access = [], rule = [], ruleGroup = [];
+                doc = await ac.Access.find({$or : [{ role : {$in : role}, roleType : "role"}
+                        , {role : {$in : roleGroup}, roleType : "rolegroup"}
+                        , {role : {$in : userGroup}, roleType : userType+"group"}
+                        , {role : user, roleType : userType}
+                    ]});
+                if(doc.length){
+                    for(let i = 0, length = doc.length; i < length; i++){
+                        // access.push({accessId : doc[i]._id, whitelist : doc[i].whitelist});
+                        if(doc[i].ruleType === "rule"){
+                            rule.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                            let d = await ac.Rule.find({rule : doc[i].rule});
+                            if (d.length){
+                                for(let j = 0, length =d.length; j < length; j++ ){
+                                    if(d[j].ruleGroup !== ""){
+                                        ruleGroup.push({rule : d[j].rule, whitelist : doc[i].whitelist});
+                                    }
+                                }
+                            }
+                        }else
+                            ruleGroup.push({rule : doc[i].rule, whitelist : doc[i].whitelist});
+                    }
+                }
+
+                //step 8, 9
+                resource = [], resourceGroup =[];
+                for(let i = 0, length = rule.length; i < length; i++){
+                    let doc= await ac.RuleProRes.find({rule : rule[i].rule, ruleType : "rule"});
+                    if(doc[0] && doc[0].proResType === "resource"){
+                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
+                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
+                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : rule[i].whitelist });
+
+                }
+
+                for(let i = 0, length = ruleGroup.length; i < length; i++){
+                    let doc= await ac.RuleProRes.find({rule : ruleGroup[i].rule, ruleType : "rulegroup"});
+                    if(doc[0] && doc[0].proResType === "resource"){
+                        resource.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
+                    }else if(doc[0] && doc[0].proResType === "resourcegroup")
+                        resourceGroup.push({proRes : doc[0].proRes, operation : doc[0].operation, whitelist : ruleGroup[i].whitelist });
+
+                }
+
+                for(let i = 0, length =resourceGroup.length; i < length; i++){
+                    let doc = await ac.Resource.find({resourceGroup : resourceGroup[i].proRes});
+                    for(let j=0, length = doc.length; j < length; j++){
+                        resource.push({proRes : doc[j].resource, operation : resourceGroup[i].operation, whitelist : resourceGroup[i].whitelist });
+                    }
+                }
+
+                for(let i = 0, length =resource.length; i < length; i++){
+                    let doc = await ac.Resource.find({resource : resource[i].proRes});
+                    if(doc.length) {
+                        resource[i]["container"] = doc.container;
+                        resource[i]["resourceKind"] = doc.resourceKind;
+                    }
+                }
+                state = "ok";
+                result = resource;
+
+
+            }else{
+                state = "error";
+                result = "用户名不存在!";
+            }
+
+            return {state: state, result: result};
+        },
+    accessRefine : async function(url, user, userType){
+        console.log("accessRefine");
+        //1, check if url is accessible
+        //2, check if all element in url are accessible
+        //{proRes : resource, operation : operation, whitelist : whitelist, container : container }
+        let doc = await module.exports.checkAccess(user, userType);
+
+        if(doc.state == "ok") {
+            let access = doc.result;
+            let result = {url: true}, proResList = {};
+            //step 1
+            for (let i = 0, length = access.length; i < length; i++) {
+                if (access[i].proRes === url) {
+                    // if(access[i].whitelist === "whitelist" && access[i].operation){
+                    if (!access[i].operation) {
+                        result.url = false;
+                    }
+                }
+            }
+
+            if (result.url) {
+                result.proRes = [];
+
+                function chkAccess(proRes, access) {
+                    for (let i = 0, length = access.length; i < length; i++) {
+                        if (access[i].proRes === proRes) {
+                            if (access[i].operation == 0)
+                                return false;
+                            else if (access[i].container)
+                                return chkAccess(access[i].container, access);
+                            else
+                                return true;
+                        }
+
+                    }
+                }
+
+                for (let i = 0, length = access.length; i < length; i++) {
+                    if (access[i].proRes === url) continue;
+                    let operation = chkAccess(access[i].proRes, access);
+                    result.proRes.push({
+                        proRes: access[i].proRes
+                        , operation: operation
+                        , resourceKind: access[i].proRes.resourceKind
+                    });
+                    proResList[access[i].proRes.split("?id=")[1]] = operation;
+                }
+            }
+
+            return {result, proResList};
+        }else
+            return {result : {url : false}}
+
+},
+    operatorInfo : function(req,res) {
+        console.log("/admin/operatorInfo");
+        let access;
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+
+        if (req.session.operator) {
+            //2、to check the access permission
+            (async function () {
+                    access = await module.exports.accessRefine("/admin/p_operatorinfo", req.session.operator, "operator");
+                    console.log(access);
+                    if (access.result.url){
+                        access.proResList.urlpath = req.baseUrl + req.path;
+                        res.set("Content-Type", "text/html");
+                        res.render("frame.ejs",access.proResList);
+                    }else{
+                        res.set("Content-Type", "text/html");
+                        res.send('page access denied!');
+                    }
+                }
+            )();
+
+        } else
+            {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
+
     }
 }

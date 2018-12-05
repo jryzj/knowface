@@ -19,5 +19,6 @@ backend.delete("/access/:resource", a_controller.access); //update_delete
 backend.put("/access/:resource", a_controller.access); //update_delete
 backend.post("/login", a_controller.login);
 backend.post("/logout", a_controller.logout);
+backend.get("/p_operatorinfo", a_controller.operatorInfo);
 
 module.exports = backend;
