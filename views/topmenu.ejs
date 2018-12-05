@@ -125,8 +125,21 @@
                 case "/admin/p_msgmanage" :
                 case "/admin/p_sendmsg" :
             case "/admin/p_accessmanage" :
+            case "/admin/p_operatorinfo" :
             %>
             <li class="nav-item"> <a class="nav-link" href="/admin/p_operatorinfo"><%=operator%>管理员</a></li>
+            <li class="nav-item">
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <%=operator%>管理员
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="/admin/p_operatorinfo">基本信息</a>
+                        <a class="dropdown-item" id="p_operatorinfo_a_modifypwd">修改密码</a>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
+                </div>
+            </li>
             <li class="nav-item"> <a class="nav-link" href="/admin/logout">退出</a></li>
             <%break;}%>
         </ul>

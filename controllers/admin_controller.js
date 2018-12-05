@@ -1394,6 +1394,8 @@ module.exports = {
                 //2、set session
                 result = "ok";
                 req.session.operator = req.body.operator;
+                req.session.lastVisitTime = doc[0].lastVisitTime;
+                await ac.Operator.update({operator : req.body.operator},{lastVisitTime : Date.now()});
             }else
                 result = "account and password are not match!";
 
@@ -1658,6 +1660,8 @@ module.exports = {
                     console.log(access);
                     if (access.result.url){
                         access.proResList.urlpath = req.baseUrl + req.path;
+                        access.proResList.operator = req.session.operator;
+                        access.proResList.lastVisitTime = new Date(req.session.lastVisitTime).toLocaleString();
                         res.set("Content-Type", "text/html");
                         res.render("frame.ejs",access.proResList);
                     }else{
