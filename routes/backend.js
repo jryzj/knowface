@@ -20,5 +20,7 @@ backend.put("/access/:resource", a_controller.access); //update_delete
 backend.post("/login", a_controller.login);
 backend.post("/logout", a_controller.logout);
 backend.get("/p_operatorinfo", a_controller.operatorInfo);
+backend.post("/modifypwd", a_controller.modifyPwd);
+backend.get("/usercrud",a_controller.userCrud);
 
 module.exports = backend;

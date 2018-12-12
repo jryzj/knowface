@@ -1,6 +1,16 @@
-hello
-<div class="row d-flex justify-content-center">
-    <div class="col-md-4 text-center">
+<div class="row d-flex justify-content-center" id="p_operatorinfo_div_basicinfo">
+    <div class="col-md-4 text-center my-3">
         <span>上次访问时间：</span><span><%=lastVisitTime%></span>
     </div>
+</div>
+
+<div class="row d-flex justify-content-center my-5" id="p_operatorinfo_div_modifypwd">
+    <div class="col-md-4 text-center bg-light rounded p-3 d-none" id="p_operatorinfo_div_pwd">
+        <div><span style="display:block; width:40%; float:left">用户名</span><span style="display:block;width:auto" id="p_operatorinfo_span_name"><%=operator%></span></div>
+        <div class="mt-3"><span style="display:block; width:40%; float:left">旧密码</span></div><input style="width:auto" type="password" id="p_operatorinfo_input_oldpwd" >
+        <div class="mt-3 "><span style="display:block; width:40%; float:left">新密码</span></div><input style="width:auto" type="password" id="p_operatorinfo_input_newpwd1">
+        <div class="mt-3"><span style="display:block; width:40%; float:left">再次输入新密码</span></div><input style="width:auto" type="password" id="p_operatorinfo_input_newpwd2">
+        <button class="mt-3 btn btn-secondary" id="p_operatorinfo_btn_submit">确认修改</button>
+    </div>
+
 </div>

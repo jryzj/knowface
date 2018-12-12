@@ -14,8 +14,32 @@ module.exports = {
     },
     userManage : function (req, res) {
         console.log("backend/admin/userManage");
-        res.set("Content-Type","text/html");
-        res.render("frame.ejs",{"urlpath":{"path":req.baseUrl+req.path}});
+        let access;
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+
+        if (req.session.operator) {
+            //2、to check the access permission
+            (async function () {
+                    access = await module.exports.accessRefine("/admin/p_usermanage", req.session.operator, "operator");
+                    console.log(access);
+                    if (access.result.url){
+                        access.proResList.urlpath = req.baseUrl + req.path;
+                        access.proResList.operator = req.session.operator;
+
+                        res.set("Content-Type", "text/html");
+                        res.render("frame.ejs",access.proResList);
+                    }else{
+                        res.set("Content-Type", "text/html");
+                        res.send('page access denied!');
+                    }
+                }
+            )();
+
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
     },
     updateUser : function (req, res) {
         console.log("backend/admin/updateUser");
@@ -1674,6 +1698,53 @@ module.exports = {
         } else
             {res.set("Content-Type","text/html");
             res.send("login, pls!");}
+
+    },
+    modifyPwd : function (req, res) {
+        console.log("/admin/modifypwd");
+        console.log(req.body);
+        if (req.session.operator) {
+            let result = {};
+            (async function () {
+                let oldpwdEnCrypto = funcs.enCrypto(req.body.oldpwd);
+                let doc = await ac.Operator.find({operator: req.session.operator, password: oldpwdEnCrypto});
+                if (doc.length != 0) {
+                    let newpwdEnCrypto = funcs.enCrypto(req.body.newpwd);
+                    doc = await ac.Operator.update({operator: req.session.operator}, {password: newpwdEnCrypto});
+                    if (doc.nModified != 0) {
+                        result.state = "ok";
+                        result.result = "password modified!";
+                    } else {
+                        result.state = "error";
+                        result.result = "modification failed!";
+                    }
+                } else {
+                    result.state = "error";
+                    result.result = "old password is wrong!";
+                }
+                res.set("Content-Type", "application/json");
+                res.send(result);
+            })();
+        } else {
+            res.set("Content-Type", "text/html");
+            res.send("login, pls!");
+        }
+    },
+    userCrud : function (req, res){
+        console.log("/admin/userCrud");
+        switch(req.method) {
+            case "GET" :
+                console.log("/admin/userCrud/get");
+                console.log(req.query);
+
+                (async function () {
+                    let doc = await userUser.find(req.query);
+
+                res.set("Content-Type", "application/json");
+                    res.send(doc);
+        })();
+                break;
+        }
 
     }
 }
