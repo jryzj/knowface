@@ -18,9 +18,12 @@ backend.post("/access/:resource", a_controller.access); //update_insert
 backend.delete("/access/:resource", a_controller.access); //update_delete
 backend.put("/access/:resource", a_controller.access); //update_delete
 backend.post("/login", a_controller.login);
-backend.post("/logout", a_controller.logout);
+backend.get("/logout", a_controller.logout);
 backend.get("/p_operatorinfo", a_controller.operatorInfo);
 backend.post("/modifypwd", a_controller.modifyPwd);
 backend.get("/usercrud",a_controller.userCrud);
+backend.put("/usercrud",a_controller.userCrud);
+backend.delete("/usercrud",a_controller.userCrud);
+backend.get("/image/:dir/:filename",a_controller.showImage);
 
 module.exports = backend;

@@ -583,7 +583,7 @@ module.exports = {
                 let form = new formidable.IncomingForm();
                 form.uploadDir = "./tmp";
                 form.keepExtensions = true;
-                let result = yield function (cb) { //reslut[0]是fields, reslut[0]是files
+                let result = yield function (cb) { //reslut[0]是fields, reslut[1]是files
                     form.parse(req, cb);
                 };
                 console.log(result);

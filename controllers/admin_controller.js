@@ -4,6 +4,10 @@ const Dao = require("../models/mongooseDao");
 const ac = new Ac.accessControl("mongoose", Dao.db, "../acPreset.js", "ac_");
 const funcs = require("../lib/funcs");
 const userUser = Dao.User;
+const fs = require("fs");
+const util = require('util');
+const formidable = require("formidable");
+const co = require("co");
 
 module.exports = {
     admin : function (req, res) {
@@ -24,12 +28,19 @@ module.exports = {
             (async function () {
                     access = await module.exports.accessRefine("/admin/p_usermanage", req.session.operator, "operator");
                     console.log(access);
-                    if (access.result.url){
-                        access.proResList.urlpath = req.baseUrl + req.path;
-                        access.proResList.operator = req.session.operator;
+                    if (access.result.mainResPro){
+                        //3、to render the page according the permission
+                        switch(req.method){
+                            case "GET" :
+                                console.log("GET   backend/admin/userManage");
+                                access.proResList.urlpath = req.baseUrl + req.path;
+                                access.proResList.operator = req.session.operator;
 
-                        res.set("Content-Type", "text/html");
-                        res.render("frame.ejs",access.proResList);
+                                res.set("Content-Type", "text/html");
+                                res.render("frame.ejs",access.proResList);
+                                break;
+                        }
+
                     }else{
                         res.set("Content-Type", "text/html");
                         res.send('page access denied!');
@@ -68,7 +79,7 @@ module.exports = {
             (async function(){
             let access = await module.exports.accessRefine("/admin/p_accessmanage", req.session.operator, "operator");
             console.log(access);
-            if (access.result.url) {
+            if (access.result.mainResPro) {
                 access.proResList.urlpath = req.baseUrl + req.path;
                 access.proResList.operator = req.session.operator;
                 res.set("Content-Type", "text/html");
@@ -1430,6 +1441,8 @@ module.exports = {
     },
     logout : function (req, res) {
         console.log("backend/admin/logout");
+        delete req.session.operator;
+        res.redirect("/admin");
     },
     isUsed : function(doc, schema){
         //before delete doc, to check if the portifolio is used.
@@ -1616,45 +1629,50 @@ module.exports = {
 
             return {state: state, result: result};
         },
-    accessRefine : async function(url, user, userType){
+    accessRefine : async function(mainResPro, user, userType){
         console.log("accessRefine");
-        //1, check if url is accessible
-        //2, check if all element in url are accessible
+        //1, check if mainResPro is accessible
+        //2, check if other resPro are accessible
         //{proRes : resource, operation : operation, whitelist : whitelist, container : container }
         let doc = await module.exports.checkAccess(user, userType);
 
         if(doc.state == "ok") {
             let access = doc.result;
-            let result = {url: true}, proResList = {};
+            let result = {mainResPro: true}, proResList = {};
+
+            function chkAccess(proRes, access) {
+                for (let i = 0, length = access.length; i < length; i++) {
+                    if (access[i].proRes === proRes) {
+                        if (access[i].operation == 0)
+                            return false;
+                        else if (access[i].container)
+                            return chkAccess(access[i].container, access);
+                        else
+                            return true;
+                    }
+
+                }
+                //
+                return true;
+            }
+
             //step 1
-            for (let i = 0, length = access.length; i < length; i++) {
+/*            for (let i = 0, length = access.length; i < length; i++) {
                 if (access[i].proRes === url) {
                     // if(access[i].whitelist === "whitelist" && access[i].operation){
                     if (!access[i].operation) {
-                        result.url = false;
+                        result.mainResPro = false;
                     }
                 }
-            }
+            }*/
 
-            if (result.url) {
+            result.mainResPro = chkAccess(mainResPro, access);
+
+            if (result.mainResPro) {
                 result.proRes = [];
 
-                function chkAccess(proRes, access) {
-                    for (let i = 0, length = access.length; i < length; i++) {
-                        if (access[i].proRes === proRes) {
-                            if (access[i].operation == 0)
-                                return false;
-                            else if (access[i].container)
-                                return chkAccess(access[i].container, access);
-                            else
-                                return true;
-                        }
-
-                    }
-                }
-
                 for (let i = 0, length = access.length; i < length; i++) {
-                    if (access[i].proRes === url) continue;
+                    if (access[i].proRes === mainResPro) continue;
                     let operation = chkAccess(access[i].proRes, access);
                     result.proRes.push({
                         proRes: access[i].proRes
@@ -1667,7 +1685,7 @@ module.exports = {
 
             return {result, proResList};
         }else
-            return {result : {url : false}}
+            return {result : {mainResPro : false}}
 
 },
     operatorInfo : function(req,res) {
@@ -1682,7 +1700,7 @@ module.exports = {
             (async function () {
                     access = await module.exports.accessRefine("/admin/p_operatorinfo", req.session.operator, "operator");
                     console.log(access);
-                    if (access.result.url){
+                    if (access.result.mainResPro){
                         access.proResList.urlpath = req.baseUrl + req.path;
                         access.proResList.operator = req.session.operator;
                         access.proResList.lastVisitTime = new Date(req.session.lastVisitTime).toLocaleString();
@@ -1732,19 +1750,132 @@ module.exports = {
     },
     userCrud : function (req, res){
         console.log("/admin/userCrud");
-        switch(req.method) {
-            case "GET" :
-                console.log("/admin/userCrud/get");
-                console.log(req.query);
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+        if (req.session.operator) {
+            (async function () {
+                access = await module.exports.accessRefine("/admin/usercrud", req.session.operator, "operator");
+                console.log(access);
+                if (access.result.mainResPro) {
+                    switch (req.method) {
+                        case "GET" :
+                            console.log("/admin/userCrud/GET");
+                            console.log(req.query);
 
-                (async function () {
-                    let doc = await userUser.find(req.query);
+                            (async function () {
+                                let doc = await userUser.find(req.query);
 
-                res.set("Content-Type", "application/json");
-                    res.send(doc);
-        })();
-                break;
-        }
+                                res.set("Content-Type", "application/json");
+                                res.send(doc);
+                            })();
+                            break;
+                        case "PUT" :
+                            console.log("/admin/userCrud/PUT");
+                            let form = new formidable.IncomingForm();
+                            form.uploadDir = "./tmp";
+                            form.keepExtensions = true;
+
+                            co(function* () {
+                                let result = yield function (cb) {
+                                    form.parse(req, cb);
+                                }
+                                console.log(result);
+                                let update = {};
+                                //same code as in user_controller.js->p_updateUserInfo
+                                //更新avator
+                                if (result[1].hasOwnProperty("avator") && result[1].avator.name.length > 0) {
+                                    //查询原来的avator文件名
+                                    let doc = yield function (cb) {
+                                        userUser.toFind({username: result[0].username}, cb)
+                                    };
+                                    //删除原来的avator
+                                    yield function (cb) {
+                                        fs.unlink("./data/users/" + result[0].username + "/" + doc.avator, cb);
+                                    }
+                                    //把新avator移动到用户目录
+                                    let avator = result[0].username + "_avator." + result[1].avator.path.split(".")[1];
+                                    yield function (cb) {
+                                        let avatorPath = "./data/users/" + result[0].username + "/" + avator;
+                                        fs.rename(result[1].avator.path, avatorPath, cb);
+                                    }
+                                    update.avator = avator;
+                                }
+
+                                if (JSON.stringify(result[0]) != "{}") {
+                                    //更新各个注册字段
+                                    if (result[0].password) update.password = funcs.enCrypto(result[0].password);
+                                    if (result[0].name) update.name = result[0].name;
+                                    if (result[0].email) update.email = result[0].email;
+                                    if (result[0].phone) update.phone = result[0].phone;
+                                }
+
+                                if (JSON.stringify(update) != "{}") {
+                                    let doc = yield function (cb) {
+                                        userUser.toUpdate({username: result[0].username}, update, cb);
+                                    }
+                                    if (doc.nModified) {
+                                        res.set("ContentType", "applications/json");
+                                        res.send({state: "ok", result: update});
+                                    }else{
+                                        res.set("ContentType", "applications/json");
+                                        res.send({state: "error", result: update});
+                                    }
+                                }else{
+                                    res.set("ContentType", "applications/json");
+                                    res.send({state: "ok", result: update});
+                                }
+                            });
+                            break;
+                        case "DELETE" :
+                            console.log("/admin/userCrud/DELETE");
+                            console.log(req.body);
+                            (async function(){
+                                let result = await userUser.deleteOne({_id : req.body._id});
+                                funcs.
+                                console.log("result:",result);
+                                if(result.ok == 1){
+                                    res.set("Content-Type", "text/html");
+                                    res.send("ok");
+                                }else{
+                                    res.set("Content-Type", "text/html");
+                                    res.send("删除出错，请重试！");
+                                }
+                            })();
+                            break;
+                    }
+                }
+            })();
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
+    },
+    showImage : function(req,res){
+        console.log("/admin/showImage");
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+
+        //1、to check session
+        if (req.session.operator) {
+            (async function () {
+                    //2、to check the access permission
+                    access = await module.exports.accessRefine("/admin/image", req.session.operator, "operator");
+                    console.log(access);
+                    if (access.result.mainResPro){
+                        let readFile = util.promisify(fs.readFile);
+                        let img = await readFile("./data/users/" + req.params.dir + "/" + req.params.filename);
+                        res.set("Content-Type", "application/x-img");
+                        res.send(img);
+                    }else{
+                        redirect("/img/avator.jpg");
+                    }
+                }
+            )();
+
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
 
     }
 }
