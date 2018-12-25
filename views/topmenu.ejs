@@ -36,10 +36,8 @@
             <%break;
                 case "/admin" :%>
             <%break;
-                case "/admin/p_usermanage" :
                 case "/admin/p_updateuser" :
                 case "/admin/p_addadmin" :
-                case "/admin/p_docmanage" :
                 case "/admin/p_updatedoc" :
                 case "/admin/p_matchmanage" :
                 case "/admin/p_msgmanage" :
@@ -52,6 +50,8 @@
             <li class="nav-item mr-auto"><a class="nav-link" href="/admin/p_accessmanage">权限管理</a></li>
             <%break;
                 case "/admin/p_operatorinfo":
+            case "/admin/p_usermanage" :
+            case "/admin/p_docmanage" :
                     %>
             <li class="nav-item mr-auto">
                 <% if(typeof p_operatoerinfo_a_usermanage == "undefined" || p_operatoerinfo_a_usermanage){ %>

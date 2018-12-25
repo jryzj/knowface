@@ -628,7 +628,8 @@ module.exports = {
                         for (let m of matchedInPhotos[match]) {
                             for (let n of m) {
                                 yield function (cb) {
-                                    userDoc.toFindOneAndUpdate({docname: n[2]}, {$addToSet: {matchedId: doc._id}}, cb);
+                                    userDoc.toFindOneAndUpdate({docname: n[2]}
+                                    , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
                                 }
                             }
                         }
@@ -809,8 +810,18 @@ module.exports = {
     randomDocs : function(req, res){
         let data = [];
         co(function* (){
-        let docs = yield function(cb){
-            userDoc.aggregate([{$sample : {size : 4}}],cb)}; //获取的数量，要和前端的匹配
+/*            let docs = [];
+            while(docs.length<4){ //获取的数量，要和前端的匹配
+                let d = yield function(cb){
+                    userDoc.aggregate([{$match : {isDeleted : false}}, {$sample : {size : 1}}],cb);
+                };
+                if (!d[0].isDeleted)
+                    docs.push(d[0]);
+            }*/
+        let docs =  yield function(cb) {
+            userDoc.aggregate([{$match: {isDeleted: false}}, {$sample: {size: 4}}], cb);
+            //there may have a effective problem, when high amount of docs in db.
+        }
         for (let i = 0, length = docs.length; i < length; i++){
                 let d = {
                     name : docs[i].name,
@@ -818,7 +829,7 @@ module.exports = {
                     lostdate : docs[i].lostDate
                 }
                     let doc = yield function(cb){
-                        userPhoto.toFind({docname : docs[i]["docname"]},cb)
+                        userPhoto.toFind({docname : docs[i]["docname"]},cb);
                     }
                     d.photoPath = "/img/"+funcs.enCryptoDES(doc["photoPath"],globalData.cryptoAlro, globalData.cryptoKey, globalData.iv);
                 data.push(d);

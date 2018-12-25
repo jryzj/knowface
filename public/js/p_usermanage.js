@@ -7,7 +7,7 @@ $(function(){
         width: "100%",
         height: "400px",
 
-        inserting: true,
+        // inserting: true,
         editing: true,
         filtering : true,
         sorting: true,
@@ -58,8 +58,10 @@ $(function(){
                         if(result.state = "ok"){
                             def.resolve();
                         }
-                        else
+                        else {
+                            alert(result.result);
                             def.reject();
+                        }
                     }
                 });
                 return def;

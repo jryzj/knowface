@@ -29,56 +29,164 @@ let generalMethods = {
         });
     },
     toFind : function (conditions, callback) {
+        conditions.isDeleted = false;
         this.findOne(conditions, function (err, doc) {
             callback(err, doc);
         });
     },
     toFindAll : function (conditions, callback) {
-        this.find(conditions, function (err, docs) {
+        console.log(conditions, callback);
+        conditions.isDeleted = false;
+/*        this.find(conditions, function (err, docs) {
             callback(err, docs);
-        });
+        });*/
+        let This = this;
+        if(callback){
+            This.find(conditions, function (err, docs) {
+                callback(err, docs);
+            });
+        }else{
+            return new Promise(function(resolve, reject) {
+                This.find(conditions, function (err, docs) {
+                    if (err)
+                        reject();
+                    else
+                        resolve(docs);
+                })
+            });
+        }
     },
     toFindWithArgs : function (conditions, projection, options, callback) {
+        conditions.isDeleted = false;
     return this.find(conditions, projection, options, function (err, docs) {
         if (typeof callback === "function")
                 callback(err, docs);
     });
     },
     toUpdate : function (conditions, doc, callback) {
+        conditions.isDeleted = false;
         this.update(conditions, doc, function (err, raw) {
             callback(err, raw);
         });
     },
     toUpdateWithOpt : function (conditions, doc, options, callback) {
+        conditions.isDeleted = false;
         this.update(conditions, doc,options, function (err, raw) {
             callback(err, raw);
         });
     },
     toUpdateAll : function (conditions, doc, options, callback) {
+        conditions.isDeleted = false;
         this.updateMany(conditions, doc,options, function (err, raw) {
             callback(err, raw);
         });
     },
     toFindOneAndUpdate : function(conditions, update, options, optionlean, callback){
+        conditions.isDeleted = false;
       this.findOneAndUpdate(conditions, update, options, optionlean, function (err, doc) {
           callback(err, doc);
       });
     },
     toRemove : function (conditions, callback) {
-        this.findOneAndDelete(conditions, function (err, doc) {
+
+/*        this.findOneAndDelete(conditions, function (err, doc) {
             callback(err, doc);
-        });
+        });*/
+
+
+        let This = this;
+        if(callback){
+            This.findOneAndUpdate(conditions, {isDeleted : true},function (err, doc) {
+                callback(err, doc);
+            });
+        }else{
+            return new Promise(function(resolve, reject) {
+                This.findOneAndUpdate(conditions, {isDeleted : true},function (err, doc) {
+                    if (err)
+                        reject();
+                    else
+                        resolve(doc);
+                })
+            });
+        }
     },
     toRemoveWithOpt : function (conditions, options, callback) {
-    this.findOneAndDelete(conditions, options, function (err, doc) {
+        this.findOneAndUpdate(conditions, {isDeleted : true}, options, function (err, doc) {
+            callback(err, doc);
+        });
+
+/*    this.findOneAndDelete(conditions, options, function (err, doc) {
         callback(err, doc);
-    });
+    });*/
     },
     toRemoveAll : function (conditions, callback) {
-        this.remove(conditions, function (err) {
+/*        this.update(conditions, {isDeleted : true}, function (err) {
             callback(err);
-        });
-    }
+        });*/
+/*        this.remove(conditions, function (err) {
+            callback(err);
+        });*/
+
+        let This = this;
+        if(callback){
+            This.updateMany(conditions, {isDeleted : true}, function (err) {
+                callback(err);
+            });
+        }else{
+            return new Promise(function(resolve, reject) {
+                This.updateMany(conditions, {isDeleted : true}, function (err) {
+                    if (err)
+                        reject();
+                    else
+                        resolve(1);
+                })
+            });
+        }
+
+
+
+    },
+    toPromisify : function (fn){
+        let This = this;
+
+      /*  //successful code phrase 1
+        let This = this;
+        let func = fn;
+        for (let i = 0 , length = arguments.length; i < length; i++)
+        {
+            arguments[i] = arguments[i+1];
+        }
+        arguments.length --;
+        let args =  Array.prototype.slice.call(arguments);
+            return new Promise(function(resolve, reject) {
+                let cb = function (err, docs) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(docs);
+                }
+                args.push(cb);
+                console.log(args);
+                func.apply(This, args);
+            });*/
+
+      //phrase 2, failed!
+        /*return function(){
+            let argvs = Array.prototype.slice.call(arguments);
+            return new Promise(function(resolve, reject){
+                let cb = function (err, docs) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(docs);
+                };
+                argvs.push(cb);
+                console.log(argvs);
+                fn.apply(This, argvs);
+            })
+
+        }*/
+        }
 };
 
 const userSchema = mongoose.Schema({
@@ -154,6 +262,7 @@ userSchema.statics.toUpdateWithOpt= generalMethods.toUpdateWithOpt;
 userSchema.statics.toUpdateAll = generalMethods.toUpdateAll;
 userSchema.statics.toRemove = generalMethods.toRemove;
 userSchema.statics.toRemoveAll = generalMethods.toRemoveAll;
+userSchema.statics.toPromisify= generalMethods.toPromisify;
 
 let User = db.model("User", userSchema);
 exports.User = User;
@@ -311,7 +420,8 @@ const globalSchema = mongoose.Schema({ //总体，统计数据
     userQty : {type : Number, default : 0},
     docQty : {type : Number, default : 0},
     photoQty : {type : Number, default : 0},
-    createTime : {type : Date, default : Date.now}
+    createTime : {type : Date, default : Date.now},
+    isDeleted : {type : Boolean, default : false}
 });
 
 globalSchema.statics.toCreate = generalMethods.toCreate;

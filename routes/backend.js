@@ -24,6 +24,8 @@ backend.post("/modifypwd", a_controller.modifyPwd);
 backend.get("/usercrud",a_controller.userCrud);
 backend.put("/usercrud",a_controller.userCrud);
 backend.delete("/usercrud",a_controller.userCrud);
+backend.get("/doccrud",a_controller.docCrud);
+backend.delete("/doccrud",a_controller.docCrud);
 backend.get("/image/:dir/:filename",a_controller.showImage);
 
 module.exports = backend;

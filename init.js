@@ -46,7 +46,7 @@ module.exports = {
     initGlobal : function (callback) {
         co(function *(){
             yield function(cb){
-                userGlobal.toFind({name : "kface"}, function (err, doc) {
+                userGlobal.find({name : "kface"}, function (err, doc) {
                     console.log(doc.photoQty);
                     globalData.photoQty =  doc.photoQty;
                 })

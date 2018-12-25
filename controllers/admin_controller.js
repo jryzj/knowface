@@ -60,6 +60,33 @@ module.exports = {
     },
     docManage : function (req, res) {
         console.log("backend/admin/docManage");
+        let access;
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+
+        if (req.session.operator) {
+            (async function () {
+                access = await module.exports.accessRefine("/admin/p_docmanage", req.session.operator, "operator");
+                console.log(access);
+                if (access.result.mainResPro){
+                    console.log("GET   backend/admin/docManage");
+                    access.proResList.urlpath = req.baseUrl + req.path;
+                    access.proResList.operator = req.session.operator;
+
+                    res.set("Content-Type", "text/html");
+                    res.render("frame.ejs",access.proResList);
+
+                }else{
+                    res.set("Content-Type", "text/html");
+                    res.send('page access denied!');
+                }
+                }
+            )();
+
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
     },
     updateDoc : function (req, res) {
         console.log("backend/admin/updateDoc");
@@ -1755,7 +1782,7 @@ module.exports = {
         //3、to render the page according the permission
         if (req.session.operator) {
             (async function () {
-                access = await module.exports.accessRefine("/admin/usercrud", req.session.operator, "operator");
+                let access = await module.exports.accessRefine("/admin/usercrud", req.session.operator, "operator");
                 console.log(access);
                 if (access.result.mainResPro) {
                     switch (req.method) {
@@ -1764,7 +1791,8 @@ module.exports = {
                             console.log(req.query);
 
                             (async function () {
-                                let doc = await userUser.find(req.query);
+                                let doc = await userUser.toFindAll(req.query);
+                                // let doc =await userUser.toPromisify(userUser.toFindAll, req.query);
 
                                 res.set("Content-Type", "application/json");
                                 res.send(doc);
@@ -1831,16 +1859,37 @@ module.exports = {
                             console.log("/admin/userCrud/DELETE");
                             console.log(req.body);
                             (async function(){
-                                let result = await userUser.deleteOne({_id : req.body._id});
-                                funcs.
-                                console.log("result:",result);
-                                if(result.ok == 1){
+                                let result={};
+                                //the term - delete here, means makes isdelete field true, not really remove record from database
+                                //1、delete record fr user table
+                                //2、delete record fr tomatch table
+                                //3、delete record fr photo table
+                                //4、delete record fr message table
+                                //5、delete record fr doc table
+                                try{
+                                        let[r_user, r_tomatch, r_photo, r_message, r_doc] = await Promise.all([
+                                            userUser.toRemove({_id : req.body._id})
+                                            ,Dao.ToMatch.toRemoveAll({username : req.body.username})
+                                            ,Dao.Photo.toRemoveAll({username : req.body.username})
+                                            ,Dao.Message.toRemoveAll({$or:[{sender : req.body.username},{receiver : req.body.username}]})
+                                            ,Dao.Doc.toRemoveAll({username : req.body.username})]);
+                                        console.log("r_user :", r_user);
+                                        console.log("r_tomatch :", r_tomatch);
+                                        console.log("r_photo :", r_photo);
+                                        console.log("r_message :", r_message);
+                                        console.log("r_doc :", r_doc);
+
                                     res.set("Content-Type", "text/html");
-                                    res.send("ok");
-                                }else{
+                                    result.state = "ok";
+                                    res.send(result);
+
+                                }catch (e) {
                                     res.set("Content-Type", "text/html");
-                                    res.send("删除出错，请重试！");
+                                    result.state = "error";
+                                    result.result =  "删除出错，请重试！";
+                                    res.send(result);
                                 }
+
                             })();
                             break;
                     }
@@ -1849,6 +1898,72 @@ module.exports = {
         } else
         {res.set("Content-Type","text/html");
             res.send("login, pls!");}
+    },
+    docCrud : function(req, res){
+        console.log("/admin/docCrud");
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+        if (req.session.operator) {
+            (async function () {
+                let access = await module.exports.accessRefine("/admin/doccrud", req.session.operator, "operator");
+                console.log(access);
+                if (access.result.mainResPro) {
+                    switch (req.method) {
+                        case "GET" :
+                            console.log("/admin/docCrud/GET");
+                            console.log(req.query);
+
+                            (async function () {
+                                let doc = await Dao.Doc.toFindAll(req.query);
+                                res.set("Content-Type", "application/json");
+                                res.send(doc);
+                            })();
+                            break;
+                        case "DELETE" :
+                            console.log("/admin/userCrud/DELETE");
+                            console.log(req.body);
+                            (async function(){
+                                let result={};
+                                //the term - delete here, means makes isdelete field true, not really remove record from database
+                                //1、delete record fr user table
+                                //2、delete record fr tomatch table
+                                //3、delete record fr photo table
+                                //4、delete record fr message table
+                                //5、delete record fr doc table
+                                try{
+                                    let[r_user, r_tomatch, r_photo, r_message, r_doc] = await Promise.all([
+                                        userUser.toRemove({_id : req.body._id})
+                                        ,Dao.ToMatch.toRemoveAll({username : req.body.username})
+                                        ,Dao.Photo.toRemoveAll({username : req.body.username})
+                                        ,Dao.Message.toRemoveAll({$or:[{sender : req.body.username},{receiver : req.body.username}]})
+                                        ,Dao.Doc.toRemoveAll({username : req.body.username})]);
+                                    console.log("r_user :", r_user);
+                                    console.log("r_tomatch :", r_tomatch);
+                                    console.log("r_photo :", r_photo);
+                                    console.log("r_message :", r_message);
+                                    console.log("r_doc :", r_doc);
+
+                                    res.set("Content-Type", "text/html");
+                                    result.state = "ok";
+                                    res.send(result);
+
+                                }catch (e) {
+                                    res.set("Content-Type", "text/html");
+                                    result.state = "error";
+                                    result.result =  "删除出错，请重试！";
+                                    res.send(result);
+                                }
+
+                            })();
+                            break;
+                    }
+                }
+            })();
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
+
     },
     showImage : function(req,res){
         console.log("/admin/showImage");
