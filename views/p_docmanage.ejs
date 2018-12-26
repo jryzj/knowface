@@ -14,62 +14,65 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
+
+
             <div class="modal-body">
-
-                <form id="p_docmanage_modal_form">
-                    <div class="row">
-                        <span class="col-4 text-right">用户名</span>
-                        <span id="p_docmanage_modal_username" class="col-7 ml-1"></span>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <label class="col-label">文档编号 :</label><span class="m-2 p-2" id="p_docmanage_span_docname"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="col-label">用户名 :</label><span class="m-2 p-2" id="p_docmanage_span_username"></span>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <label class="col-label">姓名 :</label> <span class="m-2 p-2" id="p_docmanage_span_name"></span>
                     </div>
 
-                    <div class="row mt-2">
-                        <span class="col-4 text-right">姓名</span>
-                        <input id="p_docmanage_modal_name" type="text" placeholder="姓名" name = "name" class="input-xlarge col-7 ml-1">
+                    <div class="col-md-4">
+                        <label class="col-label">失联地点 :</label>
+                        <span class="m-2 p-2" id="p_docmanage_span_location"></span>
                     </div>
 
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">头像</span>
-                        <div class="col-7 ml-1">
-                            <img  id="p_docmanage_modal_avator"  class="w-100" src="/img/avator.jpg">
-                            <input type="file" id="p_docmanage_modal_input_avator" name = "avator" class="w-100 h-100 position-absolute fixed-top" style="opacity : 0">
-                        </div>
+                    <div class="col-md-4">
+                        <label class="col-label">失联时间 :</label>
+                        <span class="m-2 p-2" id="p_docmanage_span_date"></span>
                     </div>
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">创建时间</span>
-                        <span id="p_docmanage_modal_createtime" class="col-7 ml-1"></span>
+                </div>
+                <div class="row mt-4">
+                    <div class="col">
+                        <label class="col-label my-2">相貌特征 :</label><br>
+                        <p class="p-2 mt-2" id="p_docmanage_p_appearance" style="width:100%"></p>
+                        <label class="col-label my-2">失联情况 :</label><br>
+                        <p class="p-2 mt-2" id="p_docmanage_p_descripttion" style="width:100%" ></p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="col-10 row offset-1 my-5" id="p_docmanage_div_photos">
+
                     </div>
 
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">电话</span>
-                        <input id="p_docmanage_modal_phone" type="text" placeholder="电话" name = "phone" class="input-xlarge col-7 ml-1">
+                </div>
+
+                <hr>
+
+                <div>
+                    <label class="col-label">匹配的照片:</label><br>
+                    <div class="col-10 row offset-1 my-1" id="p_docmanage_div_matchedphotos">
+
+
                     </div>
 
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">邮箱</span>
-                        <input id="p_docmanage_modal_email" type="text" placeholder="邮箱" name = "email" class="input-xlarge col-7 ml-1">
-                    </div>
-
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">新密码</span>
-                        <input id="p_docmanage_modal_pwd1" type="password" placeholder="输入新密码" name = "password" class="input-xlarge col-7 ml-1">
-                    </div>
-
-                    <div class="row  mt-2">
-                        <span class="col-4 text-right">新密码</span>
-                        <input id="p_docmanage_modal_pwd2" type="password" placeholder="再次输入新密码" class="input-xlarge col-7 ml-1">
-                    </div>
-
-                </form>
+                </div>
 
 
 
             </div>
             <div class="modal-footer">
-                <button type="button" id="p_docmanage_modal_btn_ok" class="btn btn-primary">
-                    确认修改
-                </button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    取消
+                    OK
                 </button>
             </div>
         </div>

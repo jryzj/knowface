@@ -27,5 +27,10 @@ backend.delete("/usercrud",a_controller.userCrud);
 backend.get("/doccrud",a_controller.docCrud);
 backend.delete("/doccrud",a_controller.docCrud);
 backend.get("/image/:dir/:filename",a_controller.showImage);
+backend.get("/image/:dir/:subdir/:filename",a_controller.showImage);
+backend.get("/image/:dir/:subdir/:matched/:filename",a_controller.showImage);
+backend.get("/matchedfile",a_controller.matchedFile);
+backend.get("/imagebymatched",a_controller.showImageByMatched);
+
 
 module.exports = backend;

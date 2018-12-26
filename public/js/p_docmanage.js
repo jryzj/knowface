@@ -65,6 +65,68 @@ $(function(){
 
         rowClick : function(args){
             console.log(args);
+            let item = args.item;
+            $("#p_docmanage_span_docname").text(item.docname);
+            $("#p_docmanage_span_username").text(item.username);
+            $("#p_docmanage_span_name").text(item.name);
+            $("#p_docmanage_span_location").text(item.lostLocation);
+            $("#p_docmanage_span_date").text(item.lostDate);
+            $("#p_docmanage_p_appearance").text(item.appearance);
+            $("#p_docmanage_p_descripttion").text(item.description);
+
+            $("#p_docmanage_div_photos").html("");
+            let html= "";
+            for (let i = 0, length = item.photos.length; i < length; i++){
+                html += `<div class="col-md-3 photo" style="padding:1rem">
+                    <div class="img-thumbnail" style="width:100%;height:0;padding-bottom: 100%;overflow:hidden">
+                    <img class="card-img-top" src="` + `/admin/image/` + item.username + `/` + item.docname + `/` + item.photos[i] + `" alt="Card image cap">
+                    </div>
+                    </div>`;
+            }
+            $("#p_docmanage_div_photos").html(html);
+
+
+            $("#p_docmanage_div_matchedphotos").html("");
+/*
+            $.ajax({
+                url : "/admin/matchedfile",
+                type : "GET",
+                data : {username : item.username, docname : item.docname},
+                success : function (files) {
+                    console.log(files);
+                    let html = "";
+                    for (let i = 0, length = files.length; i < length; i++){
+                            html += `<div class="col-md-3 photo" style="padding:1rem">
+                    <div class="img-thumbnail" style="width:100%;height:0;padding-bottom: 100%;overflow:hidden">
+                    <img class="card-img-top" src="`+ files[i] + `" alt="Card image cap">
+                    </div>
+                    </div>`;
+                        }
+                    $("#p_docmanage_div_matchedphotos").html(html);                     
+                }
+            });
+*/
+
+            $.ajax({
+                url : "/admin/imagebymatched",
+                type : "GET",
+                data : {username : item.username, docname : item.docname},
+                success : function (files) {
+                    console.log(files);
+                    let html = "";
+                    for (let i = 0, length = files.length; i < length; i++){
+                        html += `<div class="col-md-3 photo" style="padding:1rem">
+                    <div class="img-thumbnail" style="width:100%;height:0;padding-bottom: 100%;overflow:hidden">
+                    <img class="card-img-top" src="data:image/jpeg;base64,`+ files[i] + ` " alt="Card image cap">
+                    </div>
+                    </div>`;
+                    }
+                    $("#p_docmanage_div_matchedphotos").html(html);
+                }
+            });
+
+
+
             $("#p_docmanage_modal_rowdata").modal("toggle");
         },
 

@@ -1913,7 +1913,6 @@ module.exports = {
                         case "GET" :
                             console.log("/admin/docCrud/GET");
                             console.log(req.query);
-
                             (async function () {
                                 let doc = await Dao.Doc.toFindAll(req.query);
                                 res.set("Content-Type", "application/json");
@@ -1977,11 +1976,20 @@ module.exports = {
                     //2、to check the access permission
                     access = await module.exports.accessRefine("/admin/image", req.session.operator, "operator");
                     console.log(access);
+
+                    let path = req.params.dir;
+                    if (req.params.subdir) path = path + "/" + req.params.subdir;
+                    if (req.params.matched) path = path + "/" + req.params.matched;
+                    if (req.params.filename) path = path + "/" + req.params.filename;
                     if (access.result.mainResPro){
+
+
                         let readFile = util.promisify(fs.readFile);
-                        let img = await readFile("./data/users/" + req.params.dir + "/" + req.params.filename);
+                        let img = await readFile("./data/users/" + path);
                         res.set("Content-Type", "application/x-img");
                         res.send(img);
+
+
                     }else{
                         redirect("/img/avator.jpg");
                     }
@@ -1992,5 +2000,80 @@ module.exports = {
         {res.set("Content-Type","text/html");
             res.send("login, pls!");}
 
-    }
+    },
+    matchedFile : function(req, res) {
+        console.log("/admin/showMatchedImage");
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the data according the permission
+
+        if (req.session.operator) {
+            (async function () {
+                    //2、to check the access permission
+                    access = await module.exports.accessRefine("/imagebymatched", req.session.operator, "operator");
+                    console.log(access);
+                    console.log(req);
+                    let path = req.query.username + "/" + req.query.docname + "/matched";
+
+                    if (access.result.mainResPro) {
+                        let readDir = util.promisify(fs.readdir);
+                        let files = await readDir("./data/users/" + path);
+                        if (files) {
+                            for (let i = 0, length = files.length; i < length; i++) {
+                                files[i] = "/admin/image/" + path + "/" + files[i];
+                            }
+                            res.set("Content-Type", "applications/json");
+                            res.send(files);
+                        } else
+                            redirect("/img/avator.jpg");
+
+                    } else {
+                        redirect("/img/avator.jpg");
+                    }
+                }
+            )();
+
+        } else {
+            res.set("Content-Type", "text/html");
+            res.send("login, pls!");
+        }
+    },
+    showImageByMatched : function(req, res) {
+            console.log("/admin/showMatchedImage");
+            //1、to check session
+            //2、to check the access permission
+            //3、to render the data according the permission
+
+            if (req.session.operator) {
+                (async function () {
+                        //2、to check the access permission
+                        access = await module.exports.accessRefine("/imagebymatched", req.session.operator, "operator");
+                        console.log(access);
+                        console.log(req);
+                        let path = req.query.username + "/" + req.query.docname + "/matched";
+
+                        if (access.result.mainResPro) {
+                            let readDir = util.promisify(fs.readdir);
+                            let files = await readDir("./data/users/" + path);
+                            if (files) {
+                                let readfile = util.promisify(fs.readFile);
+                                for (let i = 0, length = files.length; i < length; i++) {
+                                    files[i] = (await readfile("./data/users/" + path + "/" + files[i])).toString("base64");
+                                }
+                                res.set("Content-Type", "applications/json");
+                                res.send(files);
+                            } else
+                                redirect("/img/avator.jpg");
+
+                        } else {
+                            redirect("/img/avator.jpg");
+                        }
+                    }
+                )();
+
+            } else {
+                res.set("Content-Type", "text/html");
+                res.send("login, pls!");
+            }
+        }
 }
