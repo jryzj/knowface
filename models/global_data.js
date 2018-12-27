@@ -1,6 +1,6 @@
 /* Practice by JERRY, created on 2018/9/13*/
 const crypto = require('crypto');
-
+const Dao = require("../models/mongooseDao");
 
 module.exports ={
     matchProgress : {}, // sessionID : [开始的时间戳，完成数量]
@@ -9,11 +9,17 @@ module.exports ={
     matchProgressChk : function(time){
         setInterval(function(){
             console.log("matchProgressChk");
-            for (let m in module.exports.matchProgress){
+            console.log(module.exports.matchProgress);
+            for (let m in module.exports.matchProgress) {
+                if (module.exports.matchProgress.hasOwnProperty(m)) {
                 let deadtime = module.exports.matchProgress[m][0] + module.exports.matchSessionLife;
-                if (Number(new Date()) > deadtime){
+                if (Number(new Date()) > deadtime) {
                     delete module.exports.matchProgress.m;
+                    (async function () {
+                        await Dao.ToMatch.toRemoveAll({visitorId: m});
+                    })();
                 }
+            }
             }
         },time);
     },

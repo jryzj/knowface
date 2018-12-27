@@ -205,6 +205,7 @@ const userSchema = mongoose.Schema({
     docQty : {type : Number, default : 0},
     docIds : {type : Array, default : []},
     isLogin : {type : Boolean, default : false},
+    remark : Array
 },{ timestamps: true });
 
 /*userSchema.statics.insert = function (docs, callback) {
@@ -395,7 +396,8 @@ const tomatchSchema = mongoose.Schema({
     contactable : {type : Boolean, default : true},
     isVaild : {type : Boolean, default : true},
     isFinished : {type : Boolean, default : false},
-    isDeleted : {type : Boolean, default : false}
+    isDeleted : {type : Boolean, default : false},
+    remark : Array
 });
 
 tomatchSchema.statics.toCreate = generalMethods.toCreate;

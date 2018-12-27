@@ -237,9 +237,10 @@ module.exports = {
                         for (let doc of docs){
                             let photos =[];
                             for (let m of doc.matchedPhoto){
-                                for (let n of m){
+/*                                for (let n of m){
                                     photos.push("/img/"+funcs.enCryptoDES(n[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv));
-                                }
+                                }*/
+                                photos.push("/img/"+funcs.enCryptoDES(m[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv));
                             }
                             if(photos.length>0){
                                 let d = {photoPath: "/img/"+funcs.enCryptoDES(doc.photoPath, globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)};//路径需要加密
@@ -296,6 +297,51 @@ module.exports = {
         })*/
 
 
+    },
+    chkMatch : function (req, res){
+        console.log("chkMatch");
+
+        //计算完成比例，
+        let completion = 0;
+        if (globalData.matchProgress[req.sessionID]) {
+            if (globalData.matchProgress[req.sessionID][1] === "error") {
+                //如果比对出错
+                res.set("Content-Type", "applications/json");
+                res.send({state : "error", result : "比对错误，请重试！"});
+            } else {
+                completion = globalData.matchProgress[req.sessionID][1] / globalData.photoQty;
+                if (completion * 100  > 99) {
+                    //如果比对完成
+                    //汇总数据
+                    userToMatch.toFindAll({visitorId:req.sessionID}, function(err, docs){
+                        let data=[];
+                        for (let doc of docs){
+                            let photos =[];
+                            for (let m of doc.matchedPhoto){
+                                photos.push("/img/"+funcs.enCryptoDES(m[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv));
+                            }
+                            if(photos.length>0){
+                                let d = {photoPath: "/img/"+funcs.enCryptoDES(doc.photoPath, globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)};//路径需要加密
+                                d.matchedPhoto = photos;
+                                data.push(d);
+                            }
+                        }
+                        console.log("chkmatch===", data);
+                        res.set("Content-Type", "applications/json");
+                        res.send({state : "ok", result : data});
+                    });
+
+                }
+                else {
+                    //如果比对没有完成
+                    res.set("Content-Type", "applications/json");
+                    res.send({state : "notready", result : Math.floor(completion*100)});
+                }
+            }
+        } else {
+            res.set("Content-Type", "applications/json");
+            res.send({state : "error", result : "没有比对记录！"});
+        }
     },
     p_matched: function (req, res) {
         console.log("p_matched");
@@ -539,9 +585,9 @@ module.exports = {
                                                     }, function (err) {
                                                         if (!err && matchedInOnePhoto.length > 0) {
                                                             if (matchedInPhotos.hasOwnProperty(file.filePath)) {
-                                                                matchedInPhotos[file.filePath].push(matchedInOnePhoto);
+                                                                matchedInPhotos[file.filePath] = matchedInPhotos[file.filePath].concat(matchedInOnePhoto);
                                                             } else {
-                                                                matchedInPhotos[file.filePath] = [matchedInOnePhoto];
+                                                                matchedInPhotos[file.filePath] = matchedInOnePhoto;
                                                             }
                                                         }
                                                         callback(err)
@@ -575,8 +621,8 @@ module.exports = {
 
                 co(function* () {
                     for (let match in matchedInPhotos) {
-                        for (let m of matchedInPhotos[match]) {
-                            for (let n of m) {
+                        for (let n of matchedInPhotos[match]) {
+
                                 let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
 
                                 //检测是否存在matched目录
@@ -601,7 +647,36 @@ module.exports = {
                                     console.log(m);
                                     fs.copyFile(match, docdir + "/" + m, cb)
                                 };
-                            }
+
+
+
+
+  /*                          for (let n of m) {
+                                let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
+
+                                //检测是否存在matched目录
+                                try {
+                                    let result = yield function (cb) {
+                                        fs.stat(docdir, cb)
+                                    };
+                                } catch (e) {
+                                    //如果没有matched目录，就新建一个。
+                                    if (e.code === 'ENOENT') {
+                                        yield function (cb) {
+                                            fs.mkdir(docdir, cb)
+                                        }
+                                    }
+                                    else
+                                        throw e;
+                                }
+
+                                //照片复制一份到匹配上的档案里的matched目录里面
+                                yield function (cb) {
+                                    let m = match.toString().split("\\").pop();
+                                    console.log(m);
+                                    fs.copyFile(match, docdir + "/" + m, cb)
+                                };
+                            }*/
                         }
                     }
                     // callback(null);
@@ -619,19 +694,24 @@ module.exports = {
                 for (let match in matchedInPhotos) {
                     co(function* () {
                         let doc = yield function (cb) {
+                            console.log(" matchedInPhotos[match]", matchedInPhotos[match]);
                             userToMatch.toFindOneAndUpdate({photoPath: match}, {
-                                $pushAll: {matchedPhoto: matchedInPhotos[match]},
+                                $push: {matchedPhoto: {$each : matchedInPhotos[match]}},
                                 isFinished: true
                             }, {lean: true}, cb);
                         };
                         console.log(doc);
                         for (let m of matchedInPhotos[match]) {
-                            for (let n of m) {
+/*                            for (let n of m) {
                                 yield function (cb) {
                                     userDoc.toFindOneAndUpdate({docname: n[2]}
                                     , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
                                 }
-                            }
+                            }*/
+                                yield function (cb) {
+                                    userDoc.toFindOneAndUpdate({docname: m[2]}
+                                        , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
+                                }
                         }
                     })
                 }
@@ -760,8 +840,7 @@ module.exports = {
             //形成以receiver为key的对象
             //{receiver: [[寻人方照片文件名，寻人方档案号，upper的照片文件名 ],。。。。 }
                 for (let doc of docs) {
-                    for (let m of doc.matchedPhoto) {
-                        for (let n of m) {
+                    for (let n of doc.matchedPhoto) {
                             if (messages.hasOwnProperty(n[1])) {
                                 messages[n[1]].push(["/img/"+funcs.enCryptoDES(n[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)
                                     , "/img/"+funcs.enCryptoDES(n[1], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)
@@ -771,7 +850,7 @@ module.exports = {
                                     , "/img/"+funcs.enCryptoDES(n[1], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)
                                     , "/img/"+funcs.enCryptoDES(doc.photoPath, globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)]];
                             }
-                        }
+
                     }
                 }
 

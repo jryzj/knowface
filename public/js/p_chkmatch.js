@@ -12,4 +12,9 @@ $(function(){
             }
        })
     });
+
+
+    $("#p_chkmatch_modal_btn_ok").click(function(){
+        window.location.href = "/p_matchdoc";
+    })
 })

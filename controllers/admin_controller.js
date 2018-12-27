@@ -1869,10 +1869,15 @@ module.exports = {
                                 try{
                                         let[r_user, r_tomatch, r_photo, r_message, r_doc] = await Promise.all([
                                             userUser.toRemove({_id : req.body._id})
-                                            ,Dao.ToMatch.toRemoveAll({username : req.body.username})
+                                            ,Dao.ToMatch.toUpdate({username : req.body.username})
                                             ,Dao.Photo.toRemoveAll({username : req.body.username})
                                             ,Dao.Message.toRemoveAll({$or:[{sender : req.body.username},{receiver : req.body.username}]})
                                             ,Dao.Doc.toRemoveAll({username : req.body.username})]);
+
+                                    Dao.Global.toUpdate({name : "kface"}, {$inc :{"docQty" : -r_doc.ok}});
+                                    Dao.Global.toUpdate({name : "kface"}, {$inc :{"photoQty" : -r_photo.ok}});
+                                    Dao.Global.toUpdate({name : "kface"}, {$inc :{"userQty" : -r_user.ok}});
+
                                         console.log("r_user :", r_user);
                                         console.log("r_tomatch :", r_tomatch);
                                         console.log("r_photo :", r_photo);
@@ -1931,12 +1936,14 @@ module.exports = {
                                 //4、delete record fr message table
                                 //5、delete record fr doc table
                                 try{
-                                    let[r_user, r_tomatch, r_photo, r_message, r_doc] = await Promise.all([
-                                        userUser.toRemove({_id : req.body._id})
-                                        ,Dao.ToMatch.toRemoveAll({username : req.body.username})
-                                        ,Dao.Photo.toRemoveAll({username : req.body.username})
+                                    let[r_user, r_photo, r_message, r_doc] = await Promise.all([
+                                        userUser.toUpdate({username: req.body.username}, [{$pull : {docIds : req.body._id}},{$push : {remark : "docIds:" + req.body._id}}])
+                                        ,Dao.Photo.toRemoveAll({docname : req.body.docname})
                                         ,Dao.Message.toRemoveAll({$or:[{sender : req.body.username},{receiver : req.body.username}]})
-                                        ,Dao.Doc.toRemoveAll({username : req.body.username})]);
+                                        ,Dao.Doc.toRemoveAll({_id : req.body._id})]);
+
+                                    Dao.Global.toUpdate({name : "kface"}, {$inc :{"docQty" : -1}});
+                                    Dao.Global.toUpdate({name : "kface"}, {$inc :{"photoQty" : -r_photo.ok}});
                                     console.log("r_user :", r_user);
                                     console.log("r_tomatch :", r_tomatch);
                                     console.log("r_photo :", r_photo);

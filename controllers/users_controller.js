@@ -424,7 +424,8 @@ module.exports = {
                     //更新global表
                     function (callback){
                         userGlobal.toFindOneAndUpdate({}, {$inc : {photoQty :(photoFilelist.length - removedfilelist.length)}}, function(err, raw){
-                            if (err) callback(err)
+                            if (err)
+                                callback(err);
                             else
                                 globalData.photoQty = raw.photoQty;
                             callback(err);

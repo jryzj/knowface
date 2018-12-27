@@ -9,13 +9,18 @@ module.exports = {
     init : function()
     {
         console.log("init");
-        co(function *(cb){
-            module.exports.initDB(cb);
+        co(function *(){
+            yield function(cb){
+                module.exports.initDB(cb);
+            };
             console.log("middle");
-            module.exports.initGlobal(cb);
+            yield function(cb){
+                module.exports.initGlobal(cb);
+            };
+
         }).catch(function (err){
             if (err) throw err;
-        })
+        });
         console.log("after init");
         globalData.matchProgressChk(60000);
     },
@@ -37,8 +42,8 @@ module.exports = {
                 yield function(cb){
                     userGlobal.toCreate({statics},cb)
                 };
-                callback(null);
             }
+            callback(null);
         }).catch(function(err){
             callback(err);
         });
@@ -47,8 +52,8 @@ module.exports = {
         co(function *(){
             yield function(cb){
                 userGlobal.find({name : "kface"}, function (err, doc) {
-                    console.log(doc.photoQty);
-                    globalData.photoQty =  doc.photoQty;
+                    console.log(doc[0].photoQty);
+                    globalData.photoQty =  doc[0].photoQty;
                 })
             }
             callback(null);
