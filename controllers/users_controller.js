@@ -492,7 +492,7 @@ module.exports = {
         }else
             res.send("error");
     },
-    p_userMsg : function (req, res) {
+    p_userMsg_old : function (req, res) {
         console.log("p_userMsg");
         let username = req.session.username;
         if(username){
@@ -524,6 +524,86 @@ module.exports = {
                 if (err) throw err;
             });
 
+
+        }else{
+            res.redirect("/");
+        }
+
+    },
+    p_userMsg : function(req, res){
+        console.log("p_userMsg");
+        let username = req.session.username;
+        if(username){
+            res.set("Content-Type","text/html");
+            res.render("frame.ejs",{"urlpath": req.baseUrl + req.path,
+                "username":username});
+
+        }else{
+            res.redirect("/");
+        }
+
+    },
+    userMsgCrud : function(req, res){
+        console.log("p_userMsgCrud");
+        let username = req.session.username;
+        if(username){
+            switch (req.method){
+                case "GET" :
+                    (async function(){
+                        console.log("p_userMsgCrud_get");
+
+                        let doc =await userMessage.toFindAll(req.query);
+                        res.set("Content-Type", "application/json");
+                        res.send(doc);
+                    })();
+                    break;
+                case "PUT" :
+                    (async function(){
+                        console.log("p_userMsgCrud_put");
+                        console.log(req.body);
+                        try {
+                            let doc =await userMessage.toUpdate({_id : req.body._id}, {isRead : true});
+                            console.log(doc);
+                            if (doc.nModified){
+                                res.set("Content-Type", "application/json");
+                                res.send({state : "ok", result : req.body});
+                            }else{
+                                res.set("Content-Type", "application/json");
+                                res.send({state : "error", result : "修改出错！"});
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            res.set("Content-Type", "application/json");
+                            res.send({state : "error", result : e});
+                        }
+
+                    })();
+                    break;
+                case "DELETE" :
+                    (async function(){
+                        console.log("p_userMsgCrud_delete");
+                        console.log(req.body);
+                        try {
+                            let doc =await userMessage.toRemove({_id : req.body._id});
+                            console.log(doc);
+                            if (doc.nModified){
+                                res.set("Content-Type", "application/json");
+                                res.send({state : "ok", result : ""});
+                            }else{
+                                res.set("Content-Type", "application/json");
+                                res.send({state : "error", result : "修改出错！"});
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            res.set("Content-Type", "application/json");
+                            res.send({state : "error", result : e});
+                        }
+
+                    })();
+                    break;
+
+
+            }
 
         }else{
             res.redirect("/");

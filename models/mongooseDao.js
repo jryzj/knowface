@@ -65,9 +65,27 @@ let generalMethods = {
     },
     toUpdate : function (conditions, doc, callback) {
         conditions.isDeleted = false;
-        this.update(conditions, doc, function (err, raw) {
+
+        let This = this;
+        if(callback){
+            This.update(conditions, doc, function (err, raw) {
+                callback(err, raw);
+            });
+        }else{
+            return new Promise(function(resolve, reject) {
+                This.update(conditions, doc, function (err, raw) {
+                    if (err)
+                        reject();
+                    else
+                        resolve(raw);
+                })
+            });
+        }
+
+
+/*        this.update(conditions, doc, function (err, raw) {
             callback(err, raw);
-        });
+        });*/
     },
     toUpdateWithOpt : function (conditions, doc, options, callback) {
         conditions.isDeleted = false;
@@ -77,9 +95,27 @@ let generalMethods = {
     },
     toUpdateAll : function (conditions, doc, options, callback) {
         conditions.isDeleted = false;
-        this.updateMany(conditions, doc,options, function (err, raw) {
+
+        let This = this;
+        if(callback){
+            This.updateMany(conditions, doc,options, function (err, raw) {
+                callback(err, raw);
+            });
+        }else{
+            return new Promise(function(resolve, reject) {
+                This.updateMany(conditions, doc,options, function (err, raw) {
+                    if (err)
+                        reject();
+                    else
+                        resolve(raw);
+                })
+            });
+        }
+
+
+/*        this.updateMany(conditions, doc,options, function (err, raw) {
             callback(err, raw);
-        });
+        });*/
     },
     toFindOneAndUpdate : function(conditions, update, options, optionlean, callback){
         conditions.isDeleted = false;

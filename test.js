@@ -362,14 +362,14 @@ obj.b();*/
 let c = funcs.enCrypto("12345678", "jry5");
 console.log(c);*/
 
-
+/*
 jsonString = [{'id':11,'name':'A1','status':1,'desc':'hello A1!'
                 ,listB:[
                                   {'id':21,'name':'B1','status':1,'desc':'hello B1!'},
                                   {'id':22,'name':'B2','status':1,'desc':'hello B2!'}]},
                                   {'id':12,'name':'A1','status':1,'desc':'hello A2!',listB:[
                                   {'id':23,'name':'B3','status':1,'desc':'hello B3!'},
-                                  {'id':24,'name':'B4','status':1,'desc':'hello B4!'}]}];
+                                  {'id':24,'name':'B4','status':1,'desc':'hello B4!'}]}];*/
 
 // let obj = [1,2,{name: "jerry", score : {math : 89, english: 78, others : [34, 56]}}];
 
@@ -385,3 +385,6 @@ console.log("obj", obj);*/
 
 
 
+Dao.Message.toUpdate({_id : "5ba2064fe2ad30566c3f7ff8"}, {isRead : true}, function(err, raw){
+    console.log(raw);
+})
