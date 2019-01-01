@@ -96,6 +96,34 @@ module.exports = {
     },
     msgManage : function (req, res) {
         console.log("backend/admin/msgManage");
+
+        let access;
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+
+        if (req.session.operator) {
+            (async function () {
+                    access = await module.exports.accessRefine("/admin/p_msgmanage", req.session.operator, "operator");
+                    console.log(access);
+                    if (access.result.mainResPro){
+                        access.proResList.urlpath = req.baseUrl + req.path;
+                        access.proResList.operator = req.session.operator;
+
+                        res.set("Content-Type", "text/html");
+                        res.render("frame.ejs",access.proResList);
+
+                    }else{
+                        res.set("Content-Type", "text/html");
+                        res.send('page access denied!');
+                    }
+                }
+            )();
+
+        } else
+        {res.set("Content-Type","text/html");
+            res.send("login, pls!");}
+
     },
     sendMsg : function (req, res) {
         console.log("backend/admin/sendMsg");
@@ -1969,6 +1997,63 @@ module.exports = {
         } else
         {res.set("Content-Type","text/html");
             res.send("login, pls!");}
+
+    },
+    msgCrud : function(req, res){
+        console.log("/admin/p_msgCrud");
+
+        //1、to check session
+        //2、to check the access permission
+        //3、to render the page according the permission
+        if (req.session.operator) {
+            (async function () {
+                let access = await module.exports.accessRefine("/admin/msgcrud", req.session.operator, "operator");
+                console.log(access);
+                if (access.result.mainResPro) {
+
+                        switch (req.method) {
+                            case "GET" :
+                                (async function () {
+                                    console.log("p_msgCrud_get");
+
+                                    let doc = await Dao.Message.toFindAll(req.query);
+                                    res.set("Content-Type", "application/json");
+                                    res.send(doc);
+                                })();
+                                break;
+                            case "DELETE" :
+                                (async function () {
+                                    console.log("p_msgCrud_delete");
+                                    console.log(req.body);
+                                    try {
+                                        let doc = await Dao.Message.toRemove({_id: req.body._id});
+                                        console.log(doc);
+                                        if (doc.nModified) {
+                                            res.set("Content-Type", "application/json");
+                                            res.send({state: "ok", result: ""});
+                                        } else {
+                                            res.set("Content-Type", "application/json");
+                                            res.send({state: "error", result: "修改出错！"});
+                                        }
+                                    } catch (e) {
+                                        console.log(e);
+                                        res.set("Content-Type", "application/json");
+                                        res.send({state: "error", result: e});
+                                    }
+
+                                })();
+                                break;
+
+                        }
+
+                }
+            })();
+        } else {
+            res.set("Content-Type", "text/html");
+            res.send("login, pls!");
+        }
+
+
 
     },
     showImage : function(req,res){

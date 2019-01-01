@@ -68,15 +68,12 @@ $(function(){
             processData: false,
             contentType: false,
             success: function (result) {
-                if (result == "ok") {
-                    $("#p_home_modal_ok").modal();
-                    // window.location.href = "/p_chkmatch";  //显示请等待
-                } else {
-                    $("#p_home_modal_error").modal();
-                }
+                    $("#p_home_modal_div_msg").text(result.result);
+                    $("#p_home_modal").modal();
             },
             error: function () {
-                $("#p_home_modal_error").modal();
+                $("#p_home_modal_div_msg").text("提交出错，请重试！");
+                $("#p_home_modal").modal();
             }
         })
 

@@ -551,7 +551,7 @@ module.exports = {
                 case "GET" :
                     (async function(){
                         console.log("p_userMsgCrud_get");
-
+                        req.query.receiver = username;
                         let doc =await userMessage.toFindAll(req.query);
                         res.set("Content-Type", "application/json");
                         res.send(doc);
@@ -562,7 +562,7 @@ module.exports = {
                         console.log("p_userMsgCrud_put");
                         console.log(req.body);
                         try {
-                            let doc =await userMessage.toUpdate({_id : req.body._id}, {isRead : true});
+                            let doc =await userMessage.toUpdate({_id : req.body._id, receiver : username}, {isRead : true});
                             console.log(doc);
                             if (doc.nModified){
                                 res.set("Content-Type", "application/json");
@@ -584,7 +584,7 @@ module.exports = {
                         console.log("p_userMsgCrud_delete");
                         console.log(req.body);
                         try {
-                            let doc =await userMessage.toRemove({_id : req.body._id});
+                            let doc =await userMessage.toRemove({_id : req.body._id, receiver : username});
                             console.log(doc);
                             if (doc.nModified){
                                 res.set("Content-Type", "application/json");

@@ -229,10 +229,10 @@ module.exports = {
                 });
             } else {
                 completion = globalData.matchProgress[req.sessionID][1] / globalData.photoQty;
-                if (completion * 100  > 99) {
+                if (completion * 100 > 99 && globalData.matchProgress[req.sessionID][3] == "finished") {
                     //如果比对完成
                     //汇总数据
-                    userToMatch.toFindAll({visitorId:req.sessionID}, function(err, docs){
+                    userToMatch.toFindAll({visitorId:req.sessionID, isFinished: true}, function(err, docs){
                         let data=[];
                         for (let doc of docs){
                             let photos =[];
@@ -310,32 +310,53 @@ module.exports = {
                 res.send({state : "error", result : "比对错误，请重试！"});
             } else {
                 completion = globalData.matchProgress[req.sessionID][1] / globalData.photoQty;
-                if (completion * 100  > 99) {
+                if (completion * 100 > 99 && globalData.matchProgress[req.sessionID][3] == "finished") {
                     //如果比对完成
                     //汇总数据
-                    userToMatch.toFindAll({visitorId:req.sessionID}, function(err, docs){
-                        let data=[];
-                        for (let doc of docs){
-                            let photos =[];
-                            for (let m of doc.matchedPhoto){
-                                photos.push("/img/"+funcs.enCryptoDES(m[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv));
+                    co(function* () {
+                        let data = [];
+                        for (let i = 0, length = globalData.matchProgress[req.sessionID][2].length; i < length; i++) {
+                            let docs = yield function (cb) {
+                                userToMatch.toFindAll({
+                                    _id: globalData.matchProgress[req.sessionID][2][i],
+                                    isFinished: true
+                                }, cb);
                             }
-                            if(photos.length>0){
-                                let d = {photoPath: "/img/"+funcs.enCryptoDES(doc.photoPath, globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)};//路径需要加密
-                                d.matchedPhoto = photos;
-                                data.push(d);
+
+                            for (let doc of docs) {
+                                let photos = [];
+                                for (let m of doc.matchedPhoto) {
+                                    photos.push("/img/" + funcs.enCryptoDES(m[0], globalData.cryptoAlro, globalData.cryptoKey, globalData.iv));
+                                }
+                                if (photos.length > 0) {
+                                    let d = {photoPath: "/img/" + funcs.enCryptoDES(doc.photoPath, globalData.cryptoAlro, globalData.cryptoKey, globalData.iv)};//路径需要加密
+                                    d.matchedPhoto = photos;
+                                    data.push(d);
+                                }
                             }
                         }
+
+                        delete globalData.matchProgress[req.sessionID];
                         console.log("chkmatch===", data);
-                        res.set("Content-Type", "applications/json");
-                        res.send({state : "ok", result : data});
+                        if (data.length == 0) data = "empty";
+                        res.set("Content-Type", "text/html");
+                        res.render("chkmatch.ejs", {
+                            /*                            "urlpath": req.baseUrl + req.path,
+                                                        "username": req.session.username,
+                                                        "matchDone": 100,*/
+                            "message": "比对完成，结果如下！",
+                            "data": data  //[{photoPath:imgurl, matchedPhoto :[imgurl , , ]},]
+                        });
+
+
                     });
+
 
                 }
                 else {
                     //如果比对没有完成
                     res.set("Content-Type", "applications/json");
-                    res.send({state : "notready", result : Math.floor(completion*100)});
+                    res.send({state : "notready", result : Math.floor(completion*100) + "%"});
                 }
             }
         } else {
@@ -369,361 +390,386 @@ module.exports = {
 
         let faceInFiles = []; //[{"filePath" : file.path, faceInOneFile : [{facePath: xxx , faceToke : xxxx}, ]},  ]
         let matchedInPhotos = {}; //{"photoPath" : file.path, "matchedInOnePhoto" : [photo表里的photopath, facepath, score]}
+        let filePathes = [];
 
         let form = new formidable.IncomingForm();
         form.uploadDir = "./tmp/tomatch/" + visitorId;
         form.keepExtensions = "true";
         form.multiples = "true";
 
-
-        async.waterfall([
-            //创建比对照片目录，前端代码保证一定有图片上传，所以不至于建了目录后是空目录
-            function (callback) {
-                fs.mkdir(form.uploadDir, function (err) {
-                    console.log(err);
-                    if (err && err.code === "EEXIST") {
-                        console.log(err.code);
-                        callback(null);
-                    } else
-                        callback(err);
-                });
-            },
-            //解析form
-            function (callback) {
-                form.parse(req, function (err, fields, files) {
-                    console.log(fields);
-                    console.log(files);
-                    if (err) {
-                        res.send("error");
-                    } else
-                        globalData.matchProgress[req.sessionID] = [Number(new Date()),0];
-                        res.send("ok");
-                    //res处理
-                    callback(err, files);
-                })
-            },
-            //循环提取每张照片上的人脸
-            function (files, callback) {
-                async.eachSeries(files, function (file, callback) {
-                    let faceInOneFile = [];
-                    async.waterfall(
-                        [
-                            //在数据库创建一条比对照片的doc
-                            function (callback) {
-                                let doc = {
-                                    photoPath: file.path,
-                                    visitorId: visitorId,
-                                    username: username,
-                                };
-                                userToMatch.toCreate(doc, function (err, doc) { //在tomatch表中增加一条记录
+        if (!globalData.matchProgress.hasOwnProperty(req.sessionID)) {
+            async.waterfall([
+                //创建比对照片目录，前端代码保证一定有图片上传，所以不至于建了目录后是空目录
+                function (callback) {
+                    fs.access(form.uploadDir, fs.constants.F_OK, function (err) {
+                        if (err) {
+                            fs.mkdir(form.uploadDir, function (err) {
+                                console.log(err);
+                                if (err && err.code === "EEXIST") {
+                                    console.log(err.code);
+                                    callback(null);
+                                } else
                                     callback(err);
-                                });
-                            },
-                            //读取一个照片文件
-                            function (callback) {
-                                fs.readFile(file.path, function (err, data) {
-                                    callback(err, data,);
-                                });
-                            },
-                            //人脸提取
-                            function (data, callback) {
-                                let options = {};
-                                options["max_face_num"] = "10";
-                                let flag = true, count = 1;
-                                async.whilst(function () {
-                                    return flag
-                                }, function (callback) {
-                                    async.waterfall([
-                                            //调用百度人脸识别接口识别人脸
-                                            function (callback) {
-                                                baiduClient.detect(data.toString("base64"), "BASE64", options).then(function (result) {
-                                                    console.log(JSON.stringify(result));
-                                                    callback(null, result)
-                                                });
-                                            },
-                                            //分析人脸数据
-                                            function (result, callback) {
-                                                if (result.error_msg === "SUCCESS") {
-                                                    let facelist = result.result["face_list"];
-                                                    async.eachSeries(facelist, function (facedata, callback) {
-                                                        let face = facedata.location;
-                                                        async.waterfall([
-                                                            //从照片中截取人脸，并每个人脸另保存为文件
-                                                            function (callback) {
-                                                                gm(data, file.path).crop(face["width"], face["height"], face["left"], face["top"]).write(file.path.replace(/\./, "-" + count + "."), function (err) {
-                                                                    callback(err);
-                                                                })
-                                                            },
-                                                            //把人脸文件加入人脸文件数组
-                                                            function (callback) {
-                                                                let facePath = file.path.replace(/\./, "-" + count + ".");
-                                                                count++;
-                                                                let face = {
-                                                                    facePath: facePath,
-                                                                    faceToken: facedata.face_token
-                                                                }
-                                                                faceInOneFile.push(face);
-                                                                callback(null);
-                                                            },
-                                                            //给已经截取的人脸区域填色，并更新到data内存中，用于下一轮的识别
-                                                            function (callback) {
-                                                                gm(data, file.path).fill("#fff").drawRectangle(face["left"], face["top"], face["left"] + face["width"], face["top"] + face["height"]).toBuffer(function (err, buffer) {
-                                                                    if (err) callback(err);
-                                                                    console.log(buffer.copy(data));
-                                                                    fs.writeFile(file.path.replace(/\./, "-aaa."), data, function (err) {
-                                                                        callback(err);
-                                                                    })
-                                                                })
-                                                            }
-                                                        ], function (err) {
-                                                            callback(err);
-                                                        });
-                                                    }, function (err) {
-                                                        callback(err);
-                                                    })
-                                                } else {
-                                                    flag = false;
-                                                    callback(null);
-                                                }
-                                            }
-                                        ], function (err) {
-                                            callback(err)
-                                        }
-                                    );
-                                }, function (err) {
-                                    callback(err);
-                                });
-                            },
-                            //把一张照片的人脸数据更新到tomatch表中
-                            function (callback) {
-                                userToMatch.toUpdate({"photoPath": file.path}, {$addToSet: {"face": faceInOneFile}}, function (err, raw) {
-                                    callback(err);
-                                });
-                            }
-                        ], function (err) {
-                            if (!err) {
-                                faceInFiles.push({"filePath": file.path, "faceInOneFile": faceInOneFile});
-                            }
-                            callback(err);
-                        });
-                }, function (err) {
-                    callback(err, files);
-                });
-            },
-            //人脸比对
-            function (files, callback) {
-
-                // co(function*() {
-                //     const cursor = Thing.find({ name: /^hello/ }).cursor();
-                //     for (let doc = yield cursor.next(); doc != null; doc = yield cursor.next()) {
-                //         console.log(doc);
-                //     }
-                // });
-
-
-                let cursor = userPhoto.toFindWithArgs({}, null, null, null).cursor();
-                let flag = true;
-
-                async.whilst(
-                    function () {
-                        return flag
-                    },
-                    //批量比对
-                    function (callback) {
+                            });
+                        } else
+                            callback(null);
+                    });
+                },
+                //解析form
+                function (callback) {
+                    form.parse(req, function (err, fields, files) {
+                        console.log(fields);
+                        console.log(files);
+                        res.set("ContentType", "applications/json");
+                        if (err) {
+                            res.send({state: "error", result: err});
+                        } else
+                            globalData.matchProgress[req.sessionID] = [Number(new Date()), 0, [], ""];
+                        res.send({state: "ok", result: "比对已经开始，请稍后查询结果。期间，请不要关闭浏览器。"});
+                        //res处理
+                        callback(err, files);
+                    })
+                },
+                //循环提取每张照片上的人脸
+                function (files, callback) {
+                    async.eachSeries(files, function (file, callback) {
+                        let faceInOneFile = [];
                         async.waterfall(
                             [
-                                //查出photo表中的图片数据
+                                //在数据库创建一条比对照片的doc
                                 function (callback) {
-                                    cursor.next(function (err, docs) {
-                                        console.log(docs);
-                                        if (docs == null) {
-                                            flag = 0;
-                                            callback(err, []);
-                                        } else
-                                        // if (docs.length == 0 ) flag = 0; //因为cursor一次只能返回一条是json格式，limit不起作用
-                                        {
-                                            globalData.matchProgress[req.sessionID][1]++;
-                                            callback(err, [docs]);
-                                        }
-                                    })
+                                    let doc = {
+                                        photoPath: file.path,
+                                        visitorId: visitorId,
+                                        username: username,
+                                    };
+                                    filePathes.push(file.path);
+                                    userToMatch.toCreate(doc, function (err, doc) { //在tomatch表中增加一条记录
+                                        console.log(doc);
+                                        globalData.matchProgress[req.sessionID][2].push(doc._id);
+                                        callback(err);
+                                    });
                                 },
-                                //比对
-                                function (docs, callback) {
-                                    console.log(docs);
-                                    async.eachSeries(docs, function (doc, callback) {
-                                        //这层似乎没必要，因为cursor一次只能返回一条，limit不起作用
-                                        async.eachSeries(faceInFiles, function (file, callback) {
-                                                let matchedInOnePhoto = [];
-
-                                                async.eachSeries(file.faceInOneFile, function (face, callback) {
-
-                                                        console.log(face);
-                                                        console.log(doc);
-                                                        baiduClient.match([{
-                                                            image: face.faceToken,
-                                                            image_type: 'FACE_TOKEN'
-                                                        }, {
-                                                            image: doc.faceToken,
-                                                            image_type: 'FACE_TOKEN'
-                                                        }]).then(function (result) {
-                                                            console.log('<match>: ' + JSON.stringify(result));
-                                                            if (result.error_msg === "SUCCESS" && (result.result.score > 70 || result.result.score == null)) {
-                                                                //匹配成功，做近一步操作
-                                                                console.log("matched");
-                                                                matchedInOnePhoto.push([doc.photoPath, doc.username, doc.docname, face.facePath, result.result.score]);
-                                                                console.log(matchedInOnePhoto);
-                                                            }
-                                                            // callback(null);
-                                                        }).then(function () {
-                                                            //暂停0.5秒，因为baidu的接口一秒只能掉2次，超过就会报错。
-                                                            setTimeout(function () {
-                                                                callback(null);
-                                                            }, 500);
-                                                        });
-
-
-                                                    }, function (err) {
-                                                        if (!err && matchedInOnePhoto.length > 0) {
-                                                            if (matchedInPhotos.hasOwnProperty(file.filePath)) {
-                                                                matchedInPhotos[file.filePath] = matchedInPhotos[file.filePath].concat(matchedInOnePhoto);
-                                                            } else {
-                                                                matchedInPhotos[file.filePath] = matchedInOnePhoto;
-                                                            }
-                                                        }
-                                                        callback(err)
+                                //读取一个照片文件
+                                function (callback) {
+                                    fs.readFile(file.path, function (err, data) {
+                                        callback(err, data,);
+                                    });
+                                },
+                                //人脸提取
+                                function (data, callback) {
+                                    let options = {};
+                                    options["max_face_num"] = "10";
+                                    let flag = true, count = 1;
+                                    async.whilst(function () {
+                                        return flag
+                                    }, function (callback) {
+                                        async.waterfall([
+                                                //调用百度人脸识别接口识别人脸
+                                                function (callback) {
+                                                    baiduClient.detect(data.toString("base64"), "BASE64", options).then(function (result) {
+                                                        console.log(JSON.stringify(result));
+                                                        callback(null, result)
+                                                    });
+                                                },
+                                                //分析人脸数据
+                                                function (result, callback) {
+                                                    if (result.error_msg === "SUCCESS") {
+                                                        let facelist = result.result["face_list"];
+                                                        async.eachSeries(facelist, function (facedata, callback) {
+                                                            let face = facedata.location;
+                                                            async.waterfall([
+                                                                //从照片中截取人脸，并每个人脸另保存为文件
+                                                                function (callback) {
+                                                                    gm(data, file.path).crop(face["width"], face["height"], face["left"], face["top"]).write(file.path.replace(/\./, "-" + count + "."), function (err) {
+                                                                        callback(err);
+                                                                    })
+                                                                },
+                                                                //把人脸文件加入人脸文件数组
+                                                                function (callback) {
+                                                                    let facePath = file.path.replace(/\./, "-" + count + ".");
+                                                                    count++;
+                                                                    let face = {
+                                                                        facePath: facePath,
+                                                                        faceToken: facedata.face_token
+                                                                    }
+                                                                    faceInOneFile.push(face);
+                                                                    callback(null);
+                                                                },
+                                                                //给已经截取的人脸区域填色，并更新到data内存中，用于下一轮的识别
+                                                                function (callback) {
+                                                                    gm(data, file.path).fill("#fff").drawRectangle(face["left"], face["top"], face["left"] + face["width"], face["top"] + face["height"]).toBuffer(function (err, buffer) {
+                                                                        if (err) callback(err);
+                                                                        console.log(buffer.copy(data));
+                                                                        fs.writeFile(file.path.replace(/\./, "-aaa."), data, function (err) {
+                                                                            callback(err);
+                                                                        })
+                                                                    })
+                                                                }
+                                                            ], function (err) {
+                                                                callback(err);
+                                                            });
+                                                        }, function (err) {
+                                                            callback(err);
+                                                        })
+                                                    } else {
+                                                        flag = false;
+                                                        callback(null);
                                                     }
-                                                );
-
-
-                                            }, function (err) {
-
+                                                }
+                                            ], function (err) {
                                                 callback(err)
                                             }
                                         );
                                     }, function (err) {
                                         callback(err);
                                     });
+                                },
+                                //把一张照片的人脸数据更新到tomatch表中
+                                function (callback) {
+                                    userToMatch.toUpdate({"photoPath": file.path}, {$addToSet: {"face": faceInOneFile}}, function (err, raw) {
+                                        callback(err);
+                                    });
                                 }
-                            ],
-                            function (err) {
+                            ], function (err) {
+                                if (!err) {
+                                    faceInFiles.push({"filePath": file.path, "faceInOneFile": faceInOneFile});
+                                }
                                 callback(err);
-                            }
-                        );
-                    },
-                    function (err) {
+                            });
+                    }, function (err) {
                         callback(err, files);
                     });
-                // callback(err, files);
-            },
-            //文件处理，移动
-            //把上传匹配到照片复制一份到匹配上的档案里的matched目录里面
-            function (files, callback) {
+                },
+                //人脸比对
+                function (files, callback) {
 
-                co(function* () {
-                    for (let match in matchedInPhotos) {
-                        for (let n of matchedInPhotos[match]) {
+                    // co(function*() {
+                    //     const cursor = Thing.find({ name: /^hello/ }).cursor();
+                    //     for (let doc = yield cursor.next(); doc != null; doc = yield cursor.next()) {
+                    //         console.log(doc);
+                    //     }
+                    // });
 
-                                let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
 
-                                //检测是否存在matched目录
-                                try {
-                                    let result = yield function (cb) {
-                                        fs.stat(docdir, cb)
-                                    };
-                                } catch (e) {
-                                    //如果没有matched目录，就新建一个。
-                                    if (e.code === 'ENOENT') {
-                                        yield function (cb) {
-                                            fs.mkdir(docdir, cb)
-                                        }
+                    let cursor = userPhoto.toFindWithArgs({}, null, null, null).cursor();
+                    let flag = true;
+
+                    async.whilst(
+                        function () {
+                            return flag
+                        },
+                        //批量比对
+                        function (callback) {
+                            async.waterfall(
+                                [
+                                    //查出photo表中的图片数据
+                                    function (callback) {
+                                        cursor.next(function (err, docs) {
+                                            console.log(docs);
+                                            if (docs == null) {
+                                                flag = 0;
+                                                callback(err, []);
+                                            } else
+                                            // if (docs.length == 0 ) flag = 0; //因为cursor一次只能返回一条是json格式，limit不起作用
+                                            {
+                                                globalData.matchProgress[req.sessionID][1]++;
+                                                callback(err, [docs]);
+                                            }
+                                        })
+                                    },
+                                    //比对
+                                    function (docs, callback) {
+                                        console.log(docs);
+                                        async.eachSeries(docs, function (doc, callback) {
+                                            //这层似乎没必要，因为cursor一次只能返回一条，limit不起作用
+                                            async.eachSeries(faceInFiles, function (file, callback) {
+                                                    let matchedInOnePhoto = [];
+
+                                                    async.eachSeries(file.faceInOneFile, function (face, callback) {
+
+                                                            console.log(face);
+                                                            console.log(doc);
+                                                            baiduClient.match([{
+                                                                image: face.faceToken,
+                                                                image_type: 'FACE_TOKEN'
+                                                            }, {
+                                                                image: doc.faceToken,
+                                                                image_type: 'FACE_TOKEN'
+                                                            }]).then(function (result) {
+                                                                console.log('<match>: ' + JSON.stringify(result));
+                                                                if (result.error_msg === "SUCCESS" && (result.result.score > 70 || result.result.score == null)) {
+                                                                    //匹配成功，做近一步操作
+                                                                    console.log("matched");
+                                                                    matchedInOnePhoto.push([doc.photoPath, doc.username, doc.docname, face.facePath, result.result.score]);
+                                                                    console.log(matchedInOnePhoto);
+                                                                }
+                                                                // callback(null);
+                                                            }).then(function () {
+                                                                //暂停0.5秒，因为baidu的接口一秒只能掉2次，超过就会报错。
+                                                                setTimeout(function () {
+                                                                    callback(null);
+                                                                }, 500);
+                                                            });
+
+
+                                                        }, function (err) {
+                                                            if (!err && matchedInOnePhoto.length > 0) {
+                                                                if (matchedInPhotos.hasOwnProperty(file.filePath)) {
+                                                                    matchedInPhotos[file.filePath] = matchedInPhotos[file.filePath].concat(matchedInOnePhoto);
+                                                                } else {
+                                                                    matchedInPhotos[file.filePath] = matchedInOnePhoto;
+                                                                }
+                                                            }
+                                                            callback(err)
+                                                        }
+                                                    );
+
+
+                                                }, function (err) {
+
+                                                    callback(err)
+                                                }
+                                            );
+                                        }, function (err) {
+                                            callback(err);
+                                        });
                                     }
-                                    else
-                                        throw e;
+                                ],
+                                function (err) {
+                                    callback(err);
                                 }
+                            );
+                        },
+                        function (err) {
+                            callback(err, files);
+                        });
+                    // callback(err, files);
+                },
+                //文件处理，移动
+                //把上传匹配到照片复制一份到匹配上的档案里的matched目录里面
+                function (files, callback) {
 
-                                //照片复制一份到匹配上的档案里的matched目录里面
-                                yield function (cb) {
-                                    let m = match.toString().split("\\").pop();
-                                    console.log(m);
-                                    fs.copyFile(match, docdir + "/" + m, cb)
-                                };
+                    if (JSON.stringify(matchedInPhotos) != "{}") {
+                        co(function* () {
+                            for (let match in matchedInPhotos) {
+                                for (let n of matchedInPhotos[match]) {
 
+                                    let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
 
-
-
-  /*                          for (let n of m) {
-                                let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
-
-                                //检测是否存在matched目录
-                                try {
-                                    let result = yield function (cb) {
-                                        fs.stat(docdir, cb)
-                                    };
-                                } catch (e) {
-                                    //如果没有matched目录，就新建一个。
-                                    if (e.code === 'ENOENT') {
-                                        yield function (cb) {
-                                            fs.mkdir(docdir, cb)
+                                    //检测是否存在matched目录
+                                    try {
+                                        let result = yield function (cb) {
+                                            fs.stat(docdir, cb)
+                                        };
+                                    } catch (e) {
+                                        //如果没有matched目录，就新建一个。
+                                        if (e.code === 'ENOENT') {
+                                            yield function (cb) {
+                                                fs.mkdir(docdir, cb)
+                                            }
                                         }
+                                        else
+                                            throw e;
                                     }
-                                    else
-                                        throw e;
-                                }
 
-                                //照片复制一份到匹配上的档案里的matched目录里面
-                                yield function (cb) {
-                                    let m = match.toString().split("\\").pop();
-                                    console.log(m);
-                                    fs.copyFile(match, docdir + "/" + m, cb)
-                                };
-                            }*/
-                        }
+                                    //照片复制一份到匹配上的档案里的matched目录里面
+                                    yield function (cb) {
+                                        let m = match.toString().split("\\").pop();
+                                        console.log(m);
+                                        fs.copyFile(match, docdir + "/" + m, cb)
+                                    };
+
+
+                                    /*                          for (let n of m) {
+                                                                  let docdir = "./data/users/" + n[1] + "/" + n[2] + "/matched";
+
+                                                                  //检测是否存在matched目录
+                                                                  try {
+                                                                      let result = yield function (cb) {
+                                                                          fs.stat(docdir, cb)
+                                                                      };
+                                                                  } catch (e) {
+                                                                      //如果没有matched目录，就新建一个。
+                                                                      if (e.code === 'ENOENT') {
+                                                                          yield function (cb) {
+                                                                              fs.mkdir(docdir, cb)
+                                                                          }
+                                                                      }
+                                                                      else
+                                                                          throw e;
+                                                                  }
+
+                                                                  //照片复制一份到匹配上的档案里的matched目录里面
+                                                                  yield function (cb) {
+                                                                      let m = match.toString().split("\\").pop();
+                                                                      console.log(m);
+                                                                      fs.copyFile(match, docdir + "/" + m, cb)
+                                                                  };
+                                                              }*/
+                                }
+                            }
+                            // callback(null);
+                        }).catch(function (err) {
+                            callback(err);
+                        });
                     }
-                    // callback(null);
-                }).catch(function (err) {
-                    callback(err);
-                });
-                callback(null, matchedInPhotos);
-            },
-            //结果写入数据库
-            //tomatch表中更新matchedPhoto，isfinished
-            //doc表中更新matchedQty, matchedId
+                    callback(null, matchedInPhotos);
+                },
+                //结果写入数据库
+                //tomatch表中更新matchedPhoto，isfinished
+                //doc表中更新matchedQty, matchedId
 
-            function (matchedInPhotos, callback) {
-
-                for (let match in matchedInPhotos) {
+                function (matchedInPhotos, callback) {
                     co(function* () {
-                        let doc = yield function (cb) {
-                            console.log(" matchedInPhotos[match]", matchedInPhotos[match]);
-                            userToMatch.toFindOneAndUpdate({photoPath: match}, {
-                                $push: {matchedPhoto: {$each : matchedInPhotos[match]}},
-                                isFinished: true
-                            }, {lean: true}, cb);
-                        };
-                        console.log(doc);
-                        for (let m of matchedInPhotos[match]) {
-/*                            for (let n of m) {
-                                yield function (cb) {
-                                    userDoc.toFindOneAndUpdate({docname: n[2]}
-                                    , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
+                        if (JSON.stringify(matchedInPhotos) != "{}") {
+                            for (let match in matchedInPhotos) {
+                                let doc = yield function (cb) {
+                                    console.log(" matchedInPhotos[match]", matchedInPhotos[match]);
+                                    userToMatch.toFindOneAndUpdate({photoPath: match}, {
+                                        $push: {matchedPhoto: {$each: matchedInPhotos[match]}}
+                                    }, {lean: true}, cb);
+                                };
+                                console.log(doc);
+                                for (let m of matchedInPhotos[match]) {
+                                    /*                            for (let n of m) {
+                                                                    yield function (cb) {
+                                                                        userDoc.toFindOneAndUpdate({docname: n[2]}
+                                                                        , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
+                                                                    }
+                                                                }*/
+                                    yield function (cb) {
+                                        userDoc.toFindOneAndUpdate({docname: m[2]}
+                                            , {$inc: {matchedQty: 1}, $addToSet: {matchedId: doc._id}}, cb);
+                                    }
                                 }
-                            }*/
-                                yield function (cb) {
-                                    userDoc.toFindOneAndUpdate({docname: m[2]}
-                                        , {$inc : {matchedQty : 1}, $addToSet: {matchedId: doc._id}}, cb);
-                                }
+
+                            }
+                            //matchedInPhotos.file1 : [[1,2,3,4],[5,6,7,8]]
                         }
-                    })
+
+                        for (let i = 0, length = globalData.matchProgress[req.sessionID][2].length; i < length; i++) {
+                            yield function (cb) {
+                                userToMatch.toFindOneAndUpdate({_id : globalData.matchProgress[req.sessionID][2][i]}, {
+                                    isFinished: true
+                                }, cb);
+                            }
+                        }
+                        globalData.matchProgress[req.sessionID][3] = "finished";
+
+                    });
+                    callback(null);
                 }
-                //matchedInPhotos.file1 : [[1,2,3,4],[5,6,7,8]]
-                callback(null);
-            }
-        ], function (err) {
-            if (err) {
-                globalData.matchProgress[req.sessionID][1] = "error";
-                throw err;
-            }
-        });
+            ], function (err) {
+                if (err) {
+                    globalData.matchProgress[req.sessionID][1] = "error";
+                    throw err;
+                }
+            });
+        }else{
+            res.set("ContentType", "applications/json");
+            res.send({state: "error", result : "前一次比对还未完成，请稍后试！"});
+        }
 
 
         /*   //在上面重写

@@ -19,6 +19,7 @@ frontend.post("/p_login/login", f_controller.p_login_login);
 frontend.get("/p_matchdoc", f_controller.p_matchDoc);
 frontend.post("/p_matchdoc/tomatch", f_controller.p_matchDoc_toMatch);
 frontend.get("/p_chkmatch",f_controller.p_chkMatch);
+frontend.get("/chkmatch",f_controller.chkMatch);
 frontend.get("/p_docs",f_controller.p_docs);
 frontend.get("/p_usermsg",f_controller.p_userMsg);
 frontend.get("/img/:id",f_controller.showPrivacyImg);

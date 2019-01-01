@@ -1,0 +1,37 @@
+
+
+<% if(data !="empty"){
+for (let d of data){%>
+<div class="row">
+    <div class="col-md-4">
+        <img class="img-thumbnail" src="<%=d["photoPath"]%>" alt="" style="width:100%">
+    </div>
+</div>
+<div class="row justify-content-center my-3">
+<div class="col-10 bg-light" style="height:0.3rem"></div>
+</div>
+
+<div class="row">
+    <%for (let p of d["matchedPhoto"]){%>
+    <div class="col-md-2">
+        <img class="img-thumbnail" src="<%=p%>" alt="" style="width:100%">
+    </div>
+    <%}%>
+</div>
+<div class="row justify-content-center my-3">
+    <div class="col-10 bg-light" style="height:0.3rem"></div>
+</div>
+<%}%>
+<!--<div class="row justify-content-center my-3">
+    <div class="col-10 bg-light" style="height:0.3rem"></div>
+</div>-->
+
+
+<%}else {%>
+<div class="text-center">
+    <p class="h6">没有匹配的照片</p>
+    <br>
+</div>
+<%}%>
+
+

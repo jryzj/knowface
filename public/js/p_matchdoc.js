@@ -54,15 +54,12 @@ $(function(){
                 processData: false,
                 contentType: false,
                 success: function (result) {
-                    if (result == "ok") {
-                        $("#p_matchdoc_modal_ok").modal();
-                        // window.location.href = "/p_chkmatch";  //显示请等待
-                    } else {
-                        $("#p_matchdoc_modal_error").modal();
-                    }
+                    $("#p_matchdoc_modal_div_msg").text(result.result);
+                    $("#p_matchdoc_modal").modal();
                 },
                 error: function () {
-                    $("#p_matchdoc_modal_error").modal();
+                    $("#p_matchdoc_modal_div_msg").text("提交出错，请重试！");
+                    $("#p_matchdoc_modal").modal();
                 }
             })
         }
@@ -79,7 +76,7 @@ $(function(){
             window.location.href = "/";
         })
 
-    $("#p_matchdoc_modal_ok").on("hidden.bs.modal", function (e) {
+    $("#p_matchdoc_modal").on("hidden.bs.modal", function (e) {
         window.location.href = "/p_chkmatch";
     });
 

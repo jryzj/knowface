@@ -26,6 +26,8 @@ backend.put("/usercrud",a_controller.userCrud);
 backend.delete("/usercrud",a_controller.userCrud);
 backend.get("/doccrud",a_controller.docCrud);
 backend.delete("/doccrud",a_controller.docCrud);
+backend.get("/msgcrud",a_controller.msgCrud);
+backend.delete("/msgcrud",a_controller.msgCrud);
 backend.get("/image/:dir/:filename",a_controller.showImage);
 backend.get("/image/:dir/:subdir/:filename",a_controller.showImage);
 backend.get("/image/:dir/:subdir/:matched/:filename",a_controller.showImage);
